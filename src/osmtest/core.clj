@@ -8,10 +8,11 @@
 
 (def startPoint [ "5.34977" "50.9348"])
 
-;(def resp1 (request "5.3496100" "50.9344600" "5.3517900" "50.9358800"))
-;(println resp1)
-
 (def xml (parseXml (request "5.3496100" "50.9344600" "5.3517900" "50.9358800")))
+
+
+; nodes of file
+(def nodes (childsByTag xml :node))
 
 ; nodes of file
 (def nodes (childsByTag xml :node))
