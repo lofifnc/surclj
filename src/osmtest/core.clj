@@ -18,14 +18,11 @@
 
 (childsByTag (first ways) :nd )
 
-
 (circle? (last (take 3 ways)))
 
 (def nodesByMyWay (nodesByWayCurry nodes))
 
 (nodesByMyWay (first ways))
-
-
 
 (defn wayHasName?
   "example condition function for checkWay
@@ -33,7 +30,7 @@
   [way]
   (checkWay way (fn[tag] (= "name" (get ( get tag :attrs ) :k)))))
 
-(map nodesByMyWay (filter #(and (circle? %) (wayHasName? %)) ways) )
+ (filter #(and (circle? %) (wayHasName? %)) ways)
 
 
 (defn isSwimmmingSport?
@@ -45,7 +42,17 @@
 
 (map nodesByMyWay (filter #(and (isSwimmmingSport? %)) ways) )
 
+(map parseNodeToCoord  (first (map nodesByMyWay (filter #(and (isSwimmmingSport? %)) ways) ) ))
 
+(map wayTags ways)
+
+
+
+(def fw (last (take 3 ways)))
+
+
+(wayTags fw)
+(wayCoords nodes fw)
 ; TODO parse result of checkWay-functions to xml structure for kml resuklt file
 
 

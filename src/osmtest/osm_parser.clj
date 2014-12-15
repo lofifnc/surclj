@@ -29,13 +29,7 @@
   "give a sequence of nodeSet that are used in the given way
   @author sören"
   [ nodeSet way ]
-  (let [nodeInWayRefs (fn [node refs]
-          (if (= (get (get node :attrs) :id) (get (get (first refs) :attrs) :ref))
-            true
-            (if (empty? (rest refs))
-              false
-              (recur node (rest refs)))))]
-    (filter #(nodeInWayRefs % (childsByTag way :nd)) nodeSet)))
+  ((nodesByWayCurry nodeSet) way))
 
 
 (defn nodesByWayCurry
@@ -48,7 +42,7 @@
             (if (empty? (rest refs))
               false
               (recur node (rest refs)))))]
-      (filter #(nodeInWayRefs % (childsByTag way :nd)) nodeSet))))
+       (filter #(nodeInWayRefs % (childsByTag way :nd)) nodeSet))))
 
 
 (defn checkWay
@@ -63,3 +57,22 @@
                       false
                       (recur (rest tags)))))]
     (checkTag (childsByTag way :tag))))
+
+
+(defn parseNodeToCoord
+  "returns a the coords of a node as vector"
+  [node]
+  ( vector (get (get node :attrs) :lon) (get ( get node :attrs) :lat )))
+
+
+(defn wayTags
+  "returns a sequence of k-v pairs as the tags of the given way"
+  [way]
+  (let [filterTag (fn
+                    [tag]
+                    (get tag :attrs))]
+   (map filterTag (childsByTag way :tag))))
+
+(defn wayCoords
+  [nodeSet way]
+  (map parseNodeToCoord (nodesByWay nodeSet fw)))
