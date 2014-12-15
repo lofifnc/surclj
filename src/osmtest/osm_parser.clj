@@ -2,10 +2,16 @@
    (require [clojure.xml :as xml]
           [clojure.zip :as zip]))
 
+
 (defn parseXml
   "parse an incoming string into a sequence by xml structure"
+  [s]
+      (xml/parse (java.io.ByteArrayInputStream. (.getBytes s))))
+
+(defn parseXmlOld
+  "parse an incoming string into a sequence by xml structure"
   [str]
-  (xml/parse str))
+  (zip-str str))
 
 
 (defn childsByTag
@@ -24,14 +30,6 @@
         (= (get (get (first nodes) :attrs) :ref) (get (get (last nodes) :attrs) :ref))))
 
 
-
-(defn nodesByWay
-  "give a sequence of nodeSet that are used in the given way
-  @author sören"
-  [ nodeSet way ]
-  ((nodesByWayCurry nodeSet) way))
-
-
 (defn nodesByWayCurry
   ""
   [nodeSet]
@@ -43,6 +41,13 @@
               false
               (recur node (rest refs)))))]
        (filter #(nodeInWayRefs % (childsByTag way :nd)) nodeSet))))
+
+
+(defn nodesByWay
+  "give a sequence of nodeSet that are used in the given way
+  @author sören"
+  [ nodeSet way ]
+  ((nodesByWayCurry nodeSet) way))
 
 
 (defn checkWay
@@ -75,4 +80,16 @@
 
 (defn wayCoords
   [nodeSet way]
-  (map parseNodeToCoord (nodesByWay nodeSet fw)))
+  (map parseNodeToCoord (nodesByWay nodeSet way)))
+
+
+(defn getNearestAreaToPoint
+  [ways nodeSet startPoint ]
+  (let
+    [distanceBetweenStartAnd (fn[node]
+          (let [[x,y] (parseNodeToCoord node)]
+             (Math/sqrt (+ (Math/pow (- (read-string x) (read-string (get startPoint 0))) 2)
+                    (Math/pow (- (read-string y) (read-string (get startPoint 1))) 2)))))
+      minWayDistance (fn[way]
+          (vector (first (sort > (map distanceBetweenStartAnd (nodesByWay nodeSet way)))) way))]
+    (last (first (sort-by first < (map minWayDistance (filter #(circle? %) ways)))))))

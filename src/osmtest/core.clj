@@ -1,14 +1,17 @@
 (ns osmtest.core)
 
 (load "osm_parser")
+(load "rest_handler")
 
 
 ; TODO read Data File (and maybe pictures)
 
-; TODO request
+(def startPoint [ "5.34977" "50.9348"])
 
-; TODO here use response instead of fix file
-(def xml (parseXml "resources/schwimmbad.osm"))
+;(def resp1 (request "5.3496100" "50.9344600" "5.3517900" "50.9358800"))
+;(println resp1)
+
+(def xml (parseXml (request "5.3496100" "50.9344600" "5.3517900" "50.9358800")))
 
 ; nodes of file
 (def nodes (childsByTag xml :node))
@@ -18,11 +21,17 @@
 
 (childsByTag (first ways) :nd )
 
-(circle? (last (take 3 ways)))
+(circle? (last (take 5 ways)))
 
 (def nodesByMyWay (nodesByWayCurry nodes))
 
+
+
 (nodesByMyWay (first ways))
+
+
+ (getNearestAreaToPoint ways nodes startPoint)
+
 
 (defn wayHasName?
   "example condition function for checkWay
@@ -47,9 +56,7 @@
 (map wayTags ways)
 
 
-
 (def fw (last (take 3 ways)))
-
 
 (wayTags fw)
 (wayCoords nodes fw)
