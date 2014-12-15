@@ -81,12 +81,12 @@
 
 
 (defn getNearestAreaToPoint
+  "delivers by sets of ways and nodes the way nearest to the start point"
   [ways nodeSet startPoint ]
   (let
     [distanceBetweenStartAnd (fn[node]
           (let [[x,y] (parseNodeToCoord node)]
-             (Math/sqrt (+ (Math/pow (- (read-string x) (read-string (get startPoint 0))) 2)
-                    (Math/pow (- (read-string y) (read-string (get startPoint 1))) 2)))))
-      minWayDistance (fn[way]
-          (vector (first (sort > (map distanceBetweenStartAnd (nodesByWay nodeSet way)))) way))]
-    (last (first (sort-by first < (map minWayDistance (filter #(circle? %) ways)))))))
+             (Math/sqrt (+ (Math/pow (- (read-string x)  (get startPoint 0)) 2)
+                    (Math/pow (- (read-string y)  (get startPoint 1)) 2)))))
+      minWayDistance (fn[way] (vector (first (sort > (map distanceBetweenStartAnd (nodesByWay nodeSet way)))) way))]
+    (last (first (sort-by first < (map minWayDistance  ways))))))

@@ -6,13 +6,13 @@
 
 ; TODO read Data File (and maybe pictures)
 
-(def startPoint [ "5.34977" "50.9348"])
+(def startPoint [ 5.34977 50.9348])
 
-(def xml (parseXml (request "5.3496100" "50.9344600" "5.3517900" "50.9358800")))
+(def decFactor 0.99999)
+(def incFactor 1.00001)
 
+(def xml (parseXml (request (* decFactor (first startPoint)) (* decFactor (last startPoint)) (* incFactor (first startPoint)) (* incFactor (last startPoint)))))
 
-; nodes of file
-(def nodes (childsByTag xml :node))
 
 ; nodes of file
 (def nodes (childsByTag xml :node))
