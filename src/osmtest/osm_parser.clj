@@ -1,17 +1,14 @@
 (ns osmtest.core
    (require [clojure.xml :as xml]
-          [clojure.zip :as zip]))
+            [clojure.zip :as zip]))
 
 
 (defn parseXml
   "parse an incoming string into a sequence by xml structure"
   [s]
-      (xml/parse (java.io.ByteArrayInputStream. (.getBytes s))))
+  (xml/parse (java.io.ByteArrayInputStream. (.getBytes s))))
 
-(defn parseXmlOld
-  "parse an incoming string into a sequence by xml structure"
-  [str]
-  (zip-str str))
+
 
 
 (defn childsByTag
