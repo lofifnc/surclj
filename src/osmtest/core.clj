@@ -8,7 +8,6 @@
 
 (def startPoint [ 5.34977 50.9348])
 
-
 (defn doLogic
   "takes coords of startpoint and multiplies the coords by 1.00001 or 0.99999 to get
   a bounding box arround it. by using this bb, a request get all ways and nodes in this
@@ -25,10 +24,9 @@
           ways        (filter #(and (circle? %) ;; hier könnten unsere Regeln stehen
                                     ) (childsByTag xml :way))
           nodesByWay  (nodesByWayCurry nodes)]
-    (def found (wayCoords nodes (getNearestAreaToPoint ways nodes startPoint)))
-     (if (empty? found)
+     (if (empty? ways)
        (recur startPoint (* decFactor decFactor) (* incFactor incFactor))
-       found)))
+       (wayCoords nodes (getNearestAreaToPoint ways nodes startPoint)))))
   ([startPoint]
    (let [  decFactor   0.99999
            incFactor   1.00001]
@@ -36,7 +34,7 @@
 
 (doLogic startPoint)
 
-
+; TODO map result of checkWay-functions to xml structure for kml resuklt file
 
 
 
@@ -100,7 +98,7 @@
 
 (wayTags fw)
 (wayCoords nodes fw)
-; TODO parse result of checkWay-functions to xml structure for kml resuklt file
+
 
 
 
