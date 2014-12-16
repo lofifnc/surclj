@@ -15,10 +15,12 @@
   bb. this ways get filtert (see comment) and the coords of the most nearst way to the startPoint will be returned.
   if there is no fitting way in this bb, this function will be called recursived with a bigger bb."
   ([startPoint decFactor incFactor]
-   (let [ xml         (parseXml (request (* decFactor (first startPoint))
-                                         (* decFactor (last startPoint))
-                                         (* incFactor (first startPoint))
-                                         (* incFactor (last startPoint))))
+   (let [ lat (first startPoint)
+          lon (last startPoint)
+          xml         (parseXml (request (* decFactor lat)
+                                         (* decFactor lon)
+                                         (* incFactor lat)
+                                         (* incFactor lon)))
           nodes       (childsByTag xml :node)
           ways        (filter #(and (circle? %) ;; hier könnten unsere Regeln stehen
                                     ) (childsByTag xml :way))
