@@ -21,7 +21,7 @@
 
 
 (defn dot-product [& matrix]
-   "dot product of given matrix"
+   "Dot product of given matrix"
   {:pre [(apply == (map count matrix))]}
   (apply + (apply map * matrix)))
 
