@@ -9,28 +9,27 @@
 (def startPoint [ 5.34977 50.9348])
 
 (defn doLogic
-  "takes coords of startpoint and multiplies the coords by 1.00001 or 0.99999 to get
+  "takes coords of startpoint and add/subtract 0.0001 to the latitude and longitude to get
   a bounding box arround it. by using this bb, a request get all ways and nodes in this
   bb. this ways get filtert (see comment) and the coords of the most nearst way to the startPoint will be returned.
-  if there is no fitting way in this bb, this function will be called recursived with a bigger bb."
-  ([startPoint decFactor incFactor]
+  if there is no fitting way in this bb, this function will be called recursived with a bigger bb (by multiply the incDec by 2)."
+  ([startPoint incDec]
    (let [ lat (first startPoint)
           lon (last startPoint)
-          xml         (parseXml (request (* decFactor lat)
-                                         (* decFactor lon)
-                                         (* incFactor lat)
-                                         (* incFactor lon)))
+          xml         (parseXml (request (-  lat incDec)
+                                         (-  lon incDec)
+                                         (+  lat incDec)
+                                         (+  lon incDec)))
           nodes       (childsByTag xml :node)
           ways        (filter #(and (circle? %) ;; hier könnten unsere Regeln stehen
                                     ) (childsByTag xml :way))
           nodesByWay  (nodesByWayCurry nodes)]
      (if (empty? ways)
-       (recur startPoint (* decFactor decFactor) (* incFactor incFactor))
+       (recur startPoint (* 2 incDec))
        (wayCoords nodes (getNearestAreaToPoint ways nodes startPoint)))))
   ([startPoint]
-   (let [  decFactor   0.99999
-           incFactor   1.00001]
-      (doLogic startPoint decFactor incFactor))))
+   (let [ incDec 0.0001 ]
+      (doLogic startPoint incDec))))
 
 (doLogic startPoint)
 
