@@ -64,8 +64,8 @@
 (def nodesByMyWay (nodesByWayCurry nodes))
 
 
-
-(nodesByMyWay (first ways))
+(last (take 5 ways))
+(nodesByMyWay (last (take 5 ways)))
 
 
  (getNearestAreaToPoint ways nodes startPoint)

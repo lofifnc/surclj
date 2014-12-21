@@ -10,7 +10,6 @@
 
 
 
-
 (defn childsByTag
   "give a sequence of xml child item with the given tag from the given root xml
   @author sören"
@@ -28,20 +27,20 @@
 
 
 (defn nodesByWayCurry
-  ""
+  "a curry-ing function to temporary save the set of nodes in the function 'nodesByWay'"
   [nodeSet]
   (fn [way]
-    (let [nodeInWayRefs (fn [node refs]
-          (if (= (get (get node :attrs) :id) (get (get (first refs) :attrs) :ref))
-            true
-            (if (empty? (rest refs))
-              false
-              (recur node (rest refs)))))]
-       (filter #(nodeInWayRefs % (childsByTag way :nd)) nodeSet))))
+    (let [getNode (fn [nd nodes]
+          (if (= (get (get nd :attrs) :ref) (get (get (first nodes) :attrs) :id))
+            (first nodes)
+            (recur nd (rest nodes))))
+          getNodeBySet (fn[nd]
+                         (getNode nd nodeSet))]
+       (map getNodeBySet (childsByTag way :nd)))))
 
 
 (defn nodesByWay
-  "give a sequence of nodeSet that are used in the given way
+  "give a sequence of nodes from the nodeSet that are used in the given way in the same oder as the way refernes
   @author sören"
   [ nodeSet way ]
   ((nodesByWayCurry nodeSet) way))
