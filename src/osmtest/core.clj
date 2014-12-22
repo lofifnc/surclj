@@ -2,11 +2,12 @@
 
 (load "osm_parser")
 (load "rest_handler")
-
+(load "kml_export_service")
+(load "utility")
 
 ; TODO read Data File (and maybe pictures)
 
-(def startPoint [ 5.34977 50.9348])
+(def rules (osmtest.utility/read-input "resources/Data.txt"))
 
 (defn doLogic
   "takes coords of startpoint and add/subtract 0.0001 to the latitude and longitude to get
@@ -14,8 +15,8 @@
   bb. this ways get filtert (see comment) and the coords of the most nearst way to the startPoint will be returned.
   if there is no fitting way in this bb, this function will be called recursived with a bigger bb (by multiply the incDec by 2)."
   ([startPoint incDec]
-   (let [ lat (first startPoint)
-          lon (last startPoint)
+   (let [ lat (last (:coord (last startPoint)))
+          lon (first  (:coord (last startPoint)))
           xml         (parseXml (request (-  lat incDec)
                                          (-  lon incDec)
                                          (+  lat incDec)
@@ -26,14 +27,21 @@
           nodesByWay  (nodesByWayCurry nodes)]
      (if (empty? ways)
        (recur startPoint (* 2 incDec))
-       (wayCoords nodes (getNearestAreaToPoint ways nodes startPoint)))))
+       (write-kml (str "out/" (first startPoint))  (wayCoords nodes (getNearestAreaToPoint ways nodes [lat lon]))))))
   ([startPoint]
    (let [ incDec 0.0001 ]
       (doLogic startPoint incDec))))
 
-(doLogic startPoint)
+
+(map doLogic rules)
+
 
 ; TODO map result of checkWay-functions to xml structure for kml resuklt file
+
+
+
+
+
 
 
 
@@ -44,6 +52,8 @@
 ;;
 ;;
 
+;(def startPoint [ 5.34977 50.9348])
+;(doLogic startPoint)
 (def decFactor 0.99999)
 (def incFactor 1.00001)
 
@@ -55,16 +65,18 @@
 
 ; ways of file
 (def ways (childsByTag xml :way))
+(first ways)
 
-(childsByTag (first ways) :nd )
+(map #(:ref (:attrs %)) (childsByTag (first ways) :nd ))
 
 (circle? (last (take 5 ways)))
 
 (def nodesByMyWay (nodesByWayCurry nodes))
-
+nodesByMyWay
 
 (last (take 5 ways))
 (nodesByMyWay (last (take 5 ways)))
+(childsByTag (last (take 5 ways)) :nd)
 
 
  (getNearestAreaToPoint ways nodes startPoint)
@@ -88,7 +100,7 @@
 
 (map nodesByMyWay (filter #(and (isSwimmmingSport? %)) ways) )
 
-(map parseNodeToCoord  (first (map nodesByMyWay (filter #(and (isSwimmmingSport? %)) ways) ) ))
+(write-kml "0011Test2" (map parseNodeToCoord  (first (map nodesByMyWay (filter #(and (isSwimmmingSport? %)) ways) ) )))
 
 (map wayTags ways)
 
