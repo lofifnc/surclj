@@ -110,7 +110,9 @@ nodesByMyWay
 (wayTags fw)
 (wayCoords nodes fw)
 
-
+;; main function
+(defn -main [& args]
+  (do(println "hello world")))
 
 
 
