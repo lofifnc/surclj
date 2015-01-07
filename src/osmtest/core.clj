@@ -52,7 +52,7 @@
 ;;
 ;;
 
-;(def startPoint [ 5.34977 50.9348])
+(def startPoint [ 5.34977 50.9348])
 ;(doLogic startPoint)
 (def decFactor 0.99999)
 (def incFactor 1.00001)
