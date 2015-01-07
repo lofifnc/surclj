@@ -1,5 +1,6 @@
 (ns osmtest.poly
-  (:use [clojure.math.numeric-tower :only (sqrt expt)]))
+  (:use [clojure.math.numeric-tower :only (sqrt expt)])
+  (:require [geo [geohash :as geohash] [jts :as jts] [spatial :as spatial]]))
 
 (def uptown
   [
@@ -29,10 +30,15 @@
   "Magnitude of given vektor"
 	(sqrt (reduce + (map  #(expt % 2) vektor))))
 
+(defn distance_meters [a b]
+  (spatial/distance (apply spatial/spatial4j-point a)(apply spatial/spatial4j-point b)))
+
 (defn vecsub[v1 v2]
   "Subtracts two vectors"
   (map - v1 v2))
 
+(comment
+"Deprecated"
 (defn point-to-linesegment[x p1 p2]
 	"Distance point to a line-segment"
   (if (or (= x p1) (= x p2)) 0
@@ -43,6 +49,18 @@
 			(< r 0) (magnitude (vecsub x p1))
 			(> r 1) (magnitude (vecsub p2 x))
 			:else (sqrt (- (expt (magnitude (vecsub x p1)) 2)(* r (expt (magnitude (vecsub p2 p1)) 2))))))))
+)
+
+(defn point-to-linesegment[x p1 p2]
+	"Distance point to a line-segment"
+  (if (or (= x p1) (= x p2)) 0
+	(let [r
+		(/ (dot-product (vecsub p2 p1) (vecsub x p1))
+			(magnitude (vecsub x p1)))]
+		(cond
+			(< r 0) (distance_meters x p1)
+			(> r 1) (distance_meters p2 x)
+			:else (sqrt (- (expt (distance_meters x p1) 2)(* r (expt (distance_meters p2 p1) 2))))))))
 
 (defn point-to-polygon [x polygon]
 	"Distance point to polygon"
@@ -65,14 +83,40 @@
   [point polygon]
   (odd? (reduce + (map #(crossing-number point %)(partition 2 1 polygon)))))
 
+(def parking [[5.39449440,50.92540920]
+[5.39439760,50.92538520]
+[5.39428670,50.92554690]
+[5.39435600,50.92556580]
+[5.39425200,50.92572160]
+[5.39421150,50.92573420]
+[5.39419710,50.92571940]
+[5.39403610,50.92579710]
+[5.39412040,50.92587160]
+[5.39419200,50.92588620]
+[5.39419780,50.92591840]
+[5.39418890,50.92596410]
+[5.39430740,50.92599180]
+[5.39436250,50.92595470]
+[5.39438830,50.92597360]
+[5.39462890,50.92594930]
+[5.39460260,50.92583600]
+[5.39456620,50.92583520]
+[5.39455300,50.92580050]
+[5.39477580,50.92548380]
+[5.39449440,50.92540920]])
 
 (point-inside? [-76.905258,40.288906] uptown) ; true
 
 (point-inside? [-73.905258,49.288906] uptown) ; false
+
+(distance_meters [51.477500 -0.461388] [33.942495 -118.408067])
 
 (point-to-polygon [-76.905258,40.288906] uptown) ; 0
 
 (point-to-polygon [-73.905258,49.288906] uptown) ; 9.463389393646754
 
 
+(point-inside? [5.39412, 50.9259] parking)
+
+(point-to-polygon [5.39412, 50.9259] parking)
 
