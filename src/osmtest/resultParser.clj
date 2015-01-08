@@ -2,7 +2,7 @@
   (require [clojure.string :as str]
            [ clojure.java.io :as io]))
 
-(def path "/home/mario/Dokumente/Master/3.Semester/Clojure/Projekt/testdaten-sur-20102014/Dataset_20102014/")
+(def path "/home/seegy/Downloads/Dataset_20102014")
 
 
 (for [x (range 1 9)] (let [file1 (slurp (str path "000" x ".truth.kml"))
