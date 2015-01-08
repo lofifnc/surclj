@@ -1,10 +1,11 @@
 (ns osmtest.rule_engine)
 
 (def polyRules 
-  { :smoking true
-    :swimming true
-    :parking true
-    :access false
+  { "smoking" true
+    "swimming" true
+    "parking" true
+    "open_fire" true 
+    "access" false
   }
 )
 
@@ -22,6 +23,3 @@
   :points 1}
     
  ])
-
-
-
