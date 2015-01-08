@@ -1,4 +1,4 @@
-(ns osmtest.core
+(ns osmtest.rest_handler
   (:require [clojure.java.io :as io]))
 
 
