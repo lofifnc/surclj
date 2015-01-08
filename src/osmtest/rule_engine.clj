@@ -1,22 +1,27 @@
 (ns osmtest.rule_engine)
 
+(def polyRules 
+  { :smoking true
+    :swimming true
+    :parking true
+    :access false
+  }
+)
+
 (def rules [
-  { :attributeTag "smoking"
-    :attributevalue "no"
-    :locationTag "building"
-    :locationValue "yes"
-    :points 2}
-
-  { :attributeTag "smoking"
-    :attributevalue "no"
-    :locationTag "amenity"
-    :locationValue "parking"
-    :points 0}
-
-
-            ])
-
+ { :attributeTag "smoking"
+   :attributevalue "no"
+   :locationTag "building"
+   :locationValue "true"
+   :points 5}
+ 
+{ :attributeTag "smoking"
+  :attributevalue "no"
+  :locationTag "amenity"
+  :locationValue "parking"
+  :points 1}
+    
+ ])
 
 
-(defn getRanking [attributes way]
-  (
+
