@@ -1,11 +1,11 @@
 (ns osmtest.core
   (require [osmtest.osm_parser :as osm]
-           [osmtest.rule_engine :as rule_engine]))
+           [osmtest.rule_engine :as rule_engine]
+           [osmtest.utility :as util]))
 
 
 (load "rest_handler")
 (load "kml_export_service")
-(load "utility")
 
 ; TODO read Data File (and maybe pictures)
 
@@ -54,12 +54,17 @@
 ;;
 ;;
 
-(def startPoint [ 5.34977 50.9348])
+
+(def data_txt (util/read-input "resources/Data.txt"))
+
+(def ID "0006")
+
+(def startPoint (:coord (get data_txt ID)))
 ;(doLogic startPoint)
 (def decFactor 0.99999)
 (def incFactor 1.00001)
 
-(def xml (osm/parseXml (request (* decFactor (first startPoint)) (* decFactor (last startPoint)) (* incFactor (first startPoint)) (* incFactor (last startPoint)))))
+(def xml (osm/parseXml (request (* decFactor (last startPoint)) (* decFactor (first startPoint)) (* incFactor (last startPoint)) (* incFactor (first startPoint)))))
 
 
 ; nodes of file
@@ -99,6 +104,10 @@ nodesByMyWay
   [way]
   (osm/checkWay way (fn[tag] (and (= "sport" (get ( get tag :attrs ) :k)) (= "swimming" (get ( get tag :attrs ) :v))))))
 
+(defn wayHasTag? [way tag]
+    (osm/checkWay way (fn[tag] (= tag (:k (:attrs tag ))))))
+
+
 
 (map nodesByMyWay (filter #(and (isSwimmmingSport? %)) ways) )
 
@@ -106,22 +115,18 @@ nodesByMyWay
 
 (map osm/wayTags ways)
 
+(last (take 6 ways))
 
-(def fw (last (take 11 ways)))
+(count ways)
 
-(osm/wayTags fw)
-(osm/wayCoords nodes fw)
+(def attrs (util/rules-by-id ID (util/read-input "resources/Data.txt")))
 
-(def attrs {"noise" "no", "access:motorvehicles" "no", "littering" "no", "dog_waste" "no"})
-(rule_engine/getRanking attrs fw)
+attrs
+
+(map #(rule_engine/getRanking attrs %) ways)
 
 
 ;; main function
 (defn -main [& args]
   (do(println "hello world")))
-
-
-
-
-
 
