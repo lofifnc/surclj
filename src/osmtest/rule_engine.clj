@@ -38,4 +38,4 @@
 
 (defn getRanking [attributes way]
   (let [ruleWay (rule-on-way attributes way)]
-    (reduce + 0(map ruleWay rules))))
+    (reduce + 0 (map ruleWay rules))))

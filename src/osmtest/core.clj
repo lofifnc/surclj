@@ -123,7 +123,9 @@ nodesByMyWay
 
 attrs
 
-(map #(rule_engine/getRanking attrs %) ways)
+(def ranks(map vector (map #(rule_engine/getRanking attrs %) ways) ways))
+
+(sort-by first > ranks)
 
 
 ;; main function
