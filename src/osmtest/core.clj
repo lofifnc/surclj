@@ -1,6 +1,8 @@
-(ns osmtest.core)
+(ns osmtest.core
+  (require [osmtest.osm_parser :as osm]
+           [osmtest.rule_engine :as rule_engine]))
 
-(load "osm_parser")
+
 (load "rest_handler")
 (load "kml_export_service")
 (load "utility")
@@ -17,17 +19,17 @@
   ([startPoint incDec]
    (let [ lat (last (:coord (last startPoint)))
           lon (first  (:coord (last startPoint)))
-          xml         (parseXml (request (-  lat incDec)
+          xml         (osm/parseXml (request (-  lat incDec)
                                          (-  lon incDec)
                                          (+  lat incDec)
                                          (+  lon incDec)))
-          nodes       (childsByTag xml :node)
-          ways        (filter #(and (circle? %) ;; hier könnten unsere Regeln stehen
-                                    ) (childsByTag xml :way))
-          nodesByWay  (nodesByWayCurry nodes)]
+          nodes       (osm/childsByTag xml :node)
+          ways        (filter #(and (osm/circle? %) ;; hier könnten unsere Regeln stehen
+                                    ) (osm/childsByTag xml :way))
+          nodesByWay  (osm/nodesByWayCurry nodes)]
      (if (empty? ways)
        (recur startPoint (* 2 incDec))
-       (write-kml (str "out/" (first startPoint))  (wayCoords nodes (getNearestAreaToPoint ways nodes [lat lon]))))))
+       (write-kml (str "out/" (first startPoint))  (osm/wayCoords nodes (osm/getNearestAreaToPoint ways nodes [lat lon]))))))
   ([startPoint]
    (let [ incDec 0.0001 ]
       (doLogic startPoint incDec))))
@@ -57,58 +59,62 @@
 (def decFactor 0.99999)
 (def incFactor 1.00001)
 
-(def xml (parseXml (request (* decFactor (first startPoint)) (* decFactor (last startPoint)) (* incFactor (first startPoint)) (* incFactor (last startPoint)))))
+(def xml (osm/parseXml (request (* decFactor (first startPoint)) (* decFactor (last startPoint)) (* incFactor (first startPoint)) (* incFactor (last startPoint)))))
 
 
 ; nodes of file
-(def nodes (childsByTag xml :node))
+(def nodes (osm/childsByTag xml :node))
 
 ; ways of file
-(def ways (childsByTag xml :way))
+(def ways (osm/childsByTag xml :way))
 (first ways)
 
-(map #(:ref (:attrs %)) (childsByTag (first ways) :nd ))
+(map #(:ref (:attrs %)) (osm/childsByTag (first ways) :nd ))
 
-(circle? (last (take 5 ways)))
+(osm/circle? (last (take 5 ways)))
 
-(def nodesByMyWay (nodesByWayCurry nodes))
+(def nodesByMyWay (osm/nodesByWayCurry nodes))
 nodesByMyWay
 
-(last (take 5 ways))
+(last (take 1 ways))
 (nodesByMyWay (last (take 5 ways)))
-(childsByTag (last (take 5 ways)) :nd)
+(osm/childsByTag (last (take 5 ways)) :nd)
 
 
- (getNearestAreaToPoint ways nodes startPoint)
+ (osm/getNearestAreaToPoint ways nodes startPoint)
 
 
 (defn wayHasName?
   "example condition function for checkWay
   @author sören"
   [way]
-  (checkWay way (fn[tag] (= "name" (get ( get tag :attrs ) :k)))))
+  (osm/checkWay way (fn[tag] (= "name" (:k (:attrs tag ))))))
 
- (filter #(and (circle? %) (wayHasName? %)) ways)
+ (filter #(and (osm/circle? %) (wayHasName? %)) ways)
 
 
 (defn isSwimmmingSport?
   "example condition function for checkWay
   @author sören"
   [way]
-  (checkWay way (fn[tag] (and (= "sport" (get ( get tag :attrs ) :k)) (= "swimming" (get ( get tag :attrs ) :v))))))
+  (osm/checkWay way (fn[tag] (and (= "sport" (get ( get tag :attrs ) :k)) (= "swimming" (get ( get tag :attrs ) :v))))))
 
 
 (map nodesByMyWay (filter #(and (isSwimmmingSport? %)) ways) )
 
-(write-kml "0011Test2" (map parseNodeToCoord  (first (map nodesByMyWay (filter #(and (isSwimmmingSport? %)) ways) ) )))
+(write-kml "0011Test2" (map osm/parseNodeToCoord  (first (map nodesByMyWay (filter #(and (isSwimmmingSport? %)) ways) ) )))
 
-(map wayTags ways)
+(map osm/wayTags ways)
 
 
-(def fw (last (take 3 ways)))
+(def fw (last (take 11 ways)))
 
-(wayTags fw)
-(wayCoords nodes fw)
+(osm/wayTags fw)
+(osm/wayCoords nodes fw)
+
+(def attrs {"noise" "no", "access:motorvehicles" "no", "littering" "no", "dog_waste" "no"})
+(rule_engine/getRanking attrs fw)
+
 
 ;; main function
 (defn -main [& args]
