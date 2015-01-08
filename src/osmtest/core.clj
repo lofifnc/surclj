@@ -31,7 +31,7 @@
           attrs       (:rules (last startPoint))
           ranks       (let[ranking_and_distance (fn[way]
                                 (/ (rule_engine/getRanking attrs way)
-                                   (inc (poly/point-to-polygon [lat long] (osm/convertStringCoords (osm/wayCoords nodes way))))))]
+                                   (inc (poly/point-to-polygon [lat lon] (osm/convertStringCoords (osm/wayCoords nodes way))))))]
                         (map vector (map #(ranking_and_distance %) ways) ways))
           ]
      (if (empty? ways)
