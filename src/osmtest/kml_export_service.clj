@@ -1,4 +1,7 @@
-(require '[clojure.xml :as xml] '[clojure.string :as string])
+(ns osmtest.kml_export_service
+  (:require [clojure.xml :as xml]
+            [clojure.string :as string])
+  )
 
 (defn to-coordinates-str [coords]
   "convert incoming list of vectors to strings"

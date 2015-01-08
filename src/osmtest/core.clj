@@ -1,11 +1,14 @@
 (ns osmtest.core
   (require [osmtest.osm_parser :as osm]
            [osmtest.rule_engine :as rule_engine]
-           [osmtest.utility :as util]))
+           [osmtest.rest_handler :as rest_handler]
+           [osmtest.kml_export_service :as kml_export_service]
+           [osmtest.utility :as utility])
+  (:gen-class :main true))
 
-
-(load "rest_handler")
-(load "kml_export_service")
+; (load "rest_handler")
+; (load "kml_export_service")
+; (load "utility")
 
 ; TODO read Data File (and maybe pictures)
 
@@ -19,7 +22,7 @@
   ([startPoint incDec]
    (let [ lat (last (:coord (last startPoint)))
           lon (first  (:coord (last startPoint)))
-          xml         (osm/parseXml (request (-  lat incDec)
+          xml         (osm/parseXml (rest_handler/request (-  lat incDec)
                                          (-  lon incDec)
                                          (+  lat incDec)
                                          (+  lon incDec)))
@@ -29,7 +32,7 @@
           nodesByWay  (osm/nodesByWayCurry nodes)]
      (if (empty? ways)
        (recur startPoint (* 2 incDec))
-       (write-kml (str "out/" (first startPoint))  (osm/wayCoords nodes (osm/getNearestAreaToPoint ways nodes [lat lon]))))))
+       (kml_export_service/write-kml (str "out/" (first startPoint))  (osm/wayCoords nodes (osm/getNearestAreaToPoint ways nodes [lat lon]))))))
   ([startPoint]
    (let [ incDec 0.0001 ]
       (doLogic startPoint incDec))))
@@ -39,15 +42,6 @@
 
 
 ; TODO map result of checkWay-functions to xml structure for kml resuklt file
-
-
-
-
-
-
-
-
-
 
 ;;
 ;; ab hier nur noch beispiele für aufrufe!!!
@@ -64,7 +58,8 @@
 (def decFactor 0.99999)
 (def incFactor 1.00001)
 
-(def xml (osm/parseXml (request (* decFactor (last startPoint)) (* decFactor (first startPoint)) (* incFactor (last startPoint)) (* incFactor (first startPoint)))))
+(def xml (osm/parseXml (rest_handler/request (* decFactor (last startPoint)) (* decFactor (first startPoint)) (* incFactor (last startPoint)) (* incFactor (first startPoint)))))
+
 
 
 ; nodes of file
@@ -111,7 +106,7 @@ nodesByMyWay
 
 (map nodesByMyWay (filter #(and (isSwimmmingSport? %)) ways) )
 
-(write-kml "0011Test2" (map osm/parseNodeToCoord  (first (map nodesByMyWay (filter #(and (isSwimmmingSport? %)) ways) ) )))
+(kml_export_service/write-kml "0011Test2" (map osm/parseNodeToCoord  (first (map nodesByMyWay (filter #(and (isSwimmmingSport? %)) ways) ) )))
 
 (map osm/wayTags ways)
 
@@ -129,6 +124,8 @@ attrs
 
 
 ;; main function
+; (defn -main [& args]
+;   (do(println "hello world")))
 (defn -main [& args]
-  (do(println "hello world")))
+  (println "Welcome to my project! These are your args:" args))
 
