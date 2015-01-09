@@ -51,6 +51,8 @@
 			:else (sqrt (- (expt (magnitude (vecsub x p1)) 2)(* r (expt (magnitude (vecsub p2 p1)) 2))))))))
 )
 
+(comment
+"Deprecated"
 (defn point-to-linesegment[x p1 p2]
 	"Distance point to a line-segment"
   (if (or (= x p1) (= x p2)) 0
@@ -61,10 +63,37 @@
 			(< r 0) (distance_meters x p1)
 			(> r 1) (distance_meters p2 x)
 			:else (sqrt (- (expt (distance_meters x p1) 2)(* r (expt (distance_meters p2 p1) 2))))))))
+)
+
+
+
+(defn point-to-linesegment[x p1 p2]
+  (let [
+        p1->p2 (distance_meters p1 p2)
+        p1->x (distance_meters p1 x)
+        p2->x (distance_meters p2 x)]
+    (cond
+     (some #(= 0.0 %) [ p2->x p1->x]) 0
+     (= 0.0 p1->p2) p1->x
+     :else (let [ sqrt (fn[x] (* x x))
+                  angle_of (fn[ank1 ank2 hyp]
+                              (* (Math/acos (/ ( + (sqrt ank1)
+                                                (sqrt ank2)
+                                                (-  (sqrt hyp)))
+                                            (* 2 ank1 ank2)))
+                                 (/ 360 (* 2 Math/PI))))
+                  p1_angle (angle_of p1->x p1->p2 p2->x)
+                  p2_angle (angle_of p1->p2 p2->x p1->x)]
+             (cond
+               (>= p1_angle 90.0) p1->x
+               (>= p2_angle 90.0) p2->x
+               :else (* (Math/sin (* p1_angle (/ (* 2 Math/PI) 360))) p1->x))))))
+
+
 
 (defn point-to-polygon [x polygon]
 	"Distance point to polygon"
-	(apply min (map #(point-to-linesegment x (first %) (second %))(partition 2 1 polygon))))
+	 (apply min (map  #(point-to-linesegment x (first %) (second %))(partition 2 1 polygon))))
 
 (defn- crossing-number
   "Determine crossing number for given point and segment of a polygon.
@@ -113,8 +142,9 @@
 
 (point-to-polygon [-76.905258,40.288906] uptown) ; 0
 
-(point-to-polygon [-73.905258,49.288906] uptown) ; 9.463389393646754
+(point-to-linesegment [-76.905258,40.288906] [-76.906357 40.293571] [-76.905853 40.295715])
 
+(point-to-polygon [-73.905258,49.288906] uptown) ; 417531.32415376697
 
 (point-inside? [5.39412, 50.9259] parking)
 
