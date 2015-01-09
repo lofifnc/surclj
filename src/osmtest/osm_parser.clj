@@ -1,4 +1,4 @@
-(ns osmtest.core
+(ns osmtest.osm_parser
    (require [clojure.xml :as xml]
             [clojure.zip :as zip]))
 
@@ -89,3 +89,9 @@
                     (Math/pow (- (read-string y)  (get startPoint 1)) 2)))))
       minWayDistance (fn[way] (vector (first (sort > (map distanceBetweenStartAnd (nodesByWay nodeSet way)))) way))]
     (last (first (sort-by first < (map minWayDistance  ways))))))
+
+
+(defn convertStringCoords[nodes]
+  (let [ convert (fn[[a b]]
+                   (vector (read-string a) (read-string b)))]
+    (map convert nodes)))

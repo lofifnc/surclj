@@ -1,9 +1,12 @@
-(ns osmtest.core)
+(ns osmtest.core
+  (require [osmtest.osm_parser :as osm]
+           [osmtest.rule_engine :as rule_engine]
+           [osmtest.rest_handler :as rest_handler]
+           [osmtest.kml_export_service :as kml_export_service]
+           [osmtest.utility :as utility]
+           [osmtest.poly :as poly])
+  (:gen-class :main true))
 
-(load "osm_parser")
-(load "rest_handler")
-(load "kml_export_service")
-(load "utility")
 
 ; TODO read Data File (and maybe pictures)
 
@@ -17,17 +20,23 @@
   ([startPoint incDec]
    (let [ lat (last (:coord (last startPoint)))
           lon (first  (:coord (last startPoint)))
-          xml         (parseXml (request (-  lat incDec)
+          xml         (osm/parseXml (rest_handler/request (-  lat incDec)
                                          (-  lon incDec)
                                          (+  lat incDec)
                                          (+  lon incDec)))
-          nodes       (childsByTag xml :node)
-          ways        (filter #(and (circle? %) ;; hier könnten unsere Regeln stehen
-                                    ) (childsByTag xml :way))
-          nodesByWay  (nodesByWayCurry nodes)]
+          nodes       (osm/childsByTag xml :node)
+          ways        (filter #(and (osm/circle? %) ;; hier könnten unsere Regeln stehen
+                                    ) (osm/childsByTag xml :way))
+          nodesByWay  (osm/nodesByWayCurry nodes)
+          attrs       (:rules (last startPoint))
+          ranks       (let[ranking_and_distance (fn[way]
+                                (/ (rule_engine/getRanking attrs way)
+                                   (inc (poly/point-to-polygon [lat lon] (osm/convertStringCoords (osm/wayCoords nodes way))))))]
+                        (map vector (map #(ranking_and_distance %) ways) ways))
+          ]
      (if (empty? ways)
        (recur startPoint (* 2 incDec))
-       (write-kml (str "out/" (first startPoint))  (wayCoords nodes (getNearestAreaToPoint ways nodes [lat lon]))))))
+       (kml_export_service/write-kml (str "out/" (first startPoint))  (osm/wayCoords nodes  (second(first(sort-by first > ranks))))))))
   ([startPoint]
    (let [ incDec 0.0001 ]
       (doLogic startPoint incDec))))
@@ -36,86 +45,104 @@
 (map doLogic rules)
 
 
+
+
 ; TODO map result of checkWay-functions to xml structure for kml resuklt file
-
-
-
-
-
-
-
-
-
 
 ;;
 ;; ab hier nur noch beispiele für aufrufe!!!
 ;;
 ;;
 
-(def startPoint [ 5.34977 50.9348])
+
+(def data_txt (util/read-input "resources/Data.txt"))
+
+(def ID "0014")
+
+(def startPoint (:coord (get data_txt ID)))
 ;(doLogic startPoint)
 (def decFactor 0.99999)
 (def incFactor 1.00001)
 
-(def xml (parseXml (request (* decFactor (first startPoint)) (* decFactor (last startPoint)) (* incFactor (first startPoint)) (* incFactor (last startPoint)))))
+(def xml (osm/parseXml (rest_handler/request (* decFactor (last startPoint)) (* decFactor (first startPoint)) (* incFactor (last startPoint)) (* incFactor (first startPoint)))))
+
 
 
 ; nodes of file
-(def nodes (childsByTag xml :node))
+(def nodes (osm/childsByTag xml :node))
 
 ; ways of file
-(def ways (childsByTag xml :way))
+(def ways (osm/childsByTag xml :way))
 (first ways)
 
-(map #(:ref (:attrs %)) (childsByTag (first ways) :nd ))
+(map #(:ref (:attrs %)) (osm/childsByTag (first ways) :nd ))
 
-(circle? (last (take 5 ways)))
+(osm/circle? (last (take 5 ways)))
 
-(def nodesByMyWay (nodesByWayCurry nodes))
+(def nodesByMyWay (osm/nodesByWayCurry nodes))
 nodesByMyWay
 
-(last (take 5 ways))
+(last (take 1 ways))
 (nodesByMyWay (last (take 5 ways)))
-(childsByTag (last (take 5 ways)) :nd)
+(osm/childsByTag (last (take 5 ways)) :nd)
 
 
- (getNearestAreaToPoint ways nodes startPoint)
+ (osm/getNearestAreaToPoint ways nodes startPoint)
 
 
 (defn wayHasName?
   "example condition function for checkWay
   @author sören"
   [way]
-  (checkWay way (fn[tag] (= "name" (get ( get tag :attrs ) :k)))))
+  (osm/checkWay way (fn[tag] (= "name" (:k (:attrs tag ))))))
 
- (filter #(and (circle? %) (wayHasName? %)) ways)
+ (filter #(and (osm/circle? %) (wayHasName? %)) ways)
 
 
 (defn isSwimmmingSport?
   "example condition function for checkWay
   @author sören"
   [way]
-  (checkWay way (fn[tag] (and (= "sport" (get ( get tag :attrs ) :k)) (= "swimming" (get ( get tag :attrs ) :v))))))
+  (osm/checkWay way (fn[tag] (and (= "sport" (get ( get tag :attrs ) :k)) (= "swimming" (get ( get tag :attrs ) :v))))))
+
+(defn wayHasTag? [way tag]
+    (osm/checkWay way (fn[tag] (= tag (:k (:attrs tag ))))))
+
 
 
 (map nodesByMyWay (filter #(and (isSwimmmingSport? %)) ways) )
 
-(write-kml "0011Test2" (map parseNodeToCoord  (first (map nodesByMyWay (filter #(and (isSwimmmingSport? %)) ways) ) )))
+;(kml_export_service/write-kml "0011Test2" (map osm/parseNodeToCoord  (first (map nodesByMyWay (filter #(and (isSwimmmingSport? %)) ways) ) )))
 
-(map wayTags ways)
+(map osm/wayTags ways)
+
+(osm/wayCoords nodes (last (take 6 ways)) )
+
+(count ways)
+
+(def attrs (util/rules-by-id ID (util/read-input "resources/Data.txt")))
+
+attrs
 
 
-(def fw (last (take 3 ways)))
+(osm/convertStringCoords (osm/wayCoords nodes (last (take 6 ways))))
 
-(wayTags fw)
-(wayCoords nodes fw)
+(def ranks
+  (let[ranking_and_distance (fn[way]
+                              (let [coords (osm/convertStringCoords (osm/wayCoords nodes way))]
+                                (/ (rule_engine/getRanking attrs way) (inc (poly/point-to-polygon startPoint coords)))))]
+    (map vector (map #(ranking_and_distance %) ways) ways)))
+
+
+
+(osm/wayCoords nodes (second(first(sort-by first > ranks))))
+
+(kml_export_service/write-kml ID (osm/wayCoords nodes (second(first(sort-by first > ranks)))))
+
 
 ;; main function
+; (defn -main [& args]
+;   (do(println "hello world")))
 (defn -main [& args]
-  (do(println "hello world")))
-
-
-
-
-
+  (println "Welcome to my project! These are your args:" args))
 
