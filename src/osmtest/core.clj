@@ -25,7 +25,7 @@
                                          (+  lat incDec)
                                          (+  lon incDec)))
           nodes       (osm/childsByTag xml :node)
-          ways        (filter #(and (osm/circle? %) ;; hier könnten unsere Regeln stehen
+          ways        (filter #(and (osm/circle? %)
                                     ) (osm/childsByTag xml :way))
           nodesByWay  (osm/nodesByWayCurry nodes)
           attrs       (:rules (last startPoint))
@@ -55,18 +55,32 @@
 ;;
 
 
-(def data_txt (util/read-input "resources/Data.txt"))
+(def data_txt (utility/read-input "resources/Data.txt"))
 
-(def ID "0014")
+(def ID "0001")
 
 (def startPoint (:coord (get data_txt ID)))
 ;(doLogic startPoint)
 (def decFactor 0.99999)
 (def incFactor 1.00001)
 
-(def xml (osm/parseXml (rest_handler/request (* decFactor (last startPoint)) (* decFactor (first startPoint)) (* incFactor (last startPoint)) (* incFactor (first startPoint)))))
+(rest_handler/request
+    (* decFactor (last startPoint))
+    (* decFactor (first startPoint))
+    (* incFactor (last startPoint))
+    (* incFactor (first startPoint)))
 
 
+
+(def xml
+  (osm/parseXml
+   (rest_handler/request
+    (* decFactor (last startPoint))
+    (* decFactor (first startPoint))
+    (* incFactor (last startPoint))
+    (* incFactor (first startPoint)))))
+
+xml
 
 ; nodes of file
 (def nodes (osm/childsByTag xml :node))

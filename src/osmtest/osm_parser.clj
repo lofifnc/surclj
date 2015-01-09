@@ -6,7 +6,7 @@
 (defn parseXml
   "parse an incoming string into a sequence by xml structure"
   [s]
-  (xml/parse (java.io.ByteArrayInputStream. (.getBytes s))))
+  (xml/parse (java.io.ByteArrayInputStream. (.getBytes s "UTF-8"))))
 
 
 
