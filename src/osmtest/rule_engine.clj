@@ -1,31 +1,23 @@
 (ns osmtest.rule_engine
-   (require [osmtest.osm_parser :as osm]))
+  (require [osmtest.osm_parser :as osm]
+           [osmtest.file_reader :as reader])
+  )
 
+(def polyRules (-> (reader/directory "./rules/poly-rules")
+               reader/only-visible
+               reader/only-files
+               reader/file-path
+               reader/slurp-files
+               reader/to-clj
+               reader/add-poly-rules))
 
-(def polyRules
-  { "smoking" true
-    "swimming" true
-    "parking" true
-    "open_fire" true
-    "access" false
-  }
-)
-
-(def rules [
- { :attributeTag "smoking"
-   :attributevalue "no"
-   :locationTag "building"
-   :locationValue "true"
-   :points 5}
-
-{ :attributeTag "smoking"
-  :attributevalue "no"
-  :locationTag "amenity"
-  :locationValue "parking"
-  :points 1}
-
- ])
-
+(def rules (-> (reader/directory "./rules/space-usage-rules")
+               reader/only-visible
+               reader/only-files
+               reader/file-path
+               reader/slurp-files
+               reader/to-clj
+               reader/add-rules))
 
 (defn rule-on-way [attributes way]
   (fn [rule]
@@ -34,7 +26,6 @@
              (not (clojure.string/blank? (get attributes (:attributeTag rule)))))
      (:points rule)
       0))))
-
 
 (defn getRanking [attributes way]
   (let [ruleWay (rule-on-way attributes way)]
