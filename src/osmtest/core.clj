@@ -8,12 +8,13 @@
   (:gen-class :main true))
 
 
-; TODO read Data File (and maybe pictures)
+
+
 
 (def rules (osmtest.utility/read-input "resources/Data.txt"))
 
 (defn doLogic
-  "takes coords of startpoint and add/subtract 0.0001 to the latitude and longitude to get
+  "takes coords of startpoint and add/subtract 0.001 to the latitude and longitude to get
   a bounding box arround it. by using this bb, a request get all ways and nodes in this
   bb. this ways get filtert (see comment) and the coords of the most nearst way to the startPoint will be returned.
   if there is no fitting way in this bb, this function will be called recursived with a bigger bb (by multiply the incDec by 2)."
@@ -25,26 +26,36 @@
                                          (+  lat incDec)
                                          (+  lon incDec)))
           nodes       (osm/childsByTag xml :node)
-          ways        (filter #(and (osm/circle? %)
-                                    ) (osm/childsByTag xml :way))
+          ways        (osm/childsByTag xml :way)
+          areas       (filter #(osm/circle? %) ways)
           nodesByWay  (osm/nodesByWayCurry nodes)
           attrs       (:rules (last startPoint))
           ranks       (let[ranking_and_distance (fn[way]
                                 (/ (rule_engine/getRanking attrs way)
                                    (inc (poly/point-to-polygon [lat lon] (osm/convertStringCoords (osm/wayCoords nodes way))))))]
-                        (map vector (map #(ranking_and_distance %) ways) ways))
+                        (println (first startPoint) attrs (sort-by first > (map vector (map #(ranking_and_distance %) areas) areas) ))
+                        (map vector (map #(ranking_and_distance %) areas) areas))
           ]
-     (if (empty? ways)
+     (if (empty? areas)
        (recur startPoint (* 2 incDec))
        (kml_export_service/write-kml (str "out/" (first startPoint))  (osm/wayCoords nodes  (second(first(sort-by first > ranks))))))))
   ([startPoint]
-   (let [ incDec 0.0001 ]
+   (let [ incDec 0.001 ]
       (doLogic startPoint incDec))))
 
 
 (map doLogic rules)
 
 
+
+(def ranks
+  (let[areas (filter osm/circle? ways)
+       ranking_and_distance (fn[way]
+                              (let [coords (osm/convertStringCoords (osm/wayCoords nodes way))]
+                                (/ (rule_engine/getRanking attrs way) (inc (poly/point-to-polygon startPoint coords)))))]
+    (map vector (map #(ranking_and_distance %) areas) areas)))
+
+(osm/wayCoords nodes (second (first (sort-by first > ranks))))
 
 
 ; TODO map result of checkWay-functions to xml structure for kml resuklt file
@@ -61,24 +72,24 @@
 
 (def startPoint (:coord (get data_txt ID)))
 ;(doLogic startPoint)
-(def decFactor 0.99999)
-(def incFactor 1.00001)
+(def incDec 0.001)
+
 
 (rest_handler/request
-    (* decFactor (last startPoint))
-    (* decFactor (first startPoint))
-    (* incFactor (last startPoint))
-    (* incFactor (first startPoint)))
+    (-  (last startPoint) incDec)
+    (-  (first startPoint) incDec)
+    (+  (last startPoint) incDec)
+    (+  (first startPoint) incDec))
 
 
 
 (def xml
   (osm/parseXml
    (rest_handler/request
-    (* decFactor (last startPoint))
-    (* decFactor (first startPoint))
-    (* incFactor (last startPoint))
-    (* incFactor (first startPoint)))))
+    (-  (last startPoint) incDec)
+    (-  (first startPoint) incDec)
+    (+  (last startPoint) incDec)
+    (+  (first startPoint) incDec))))
 
 xml
 
@@ -133,8 +144,9 @@ nodesByMyWay
 (osm/wayCoords nodes (last (take 6 ways)) )
 
 (count ways)
+(count (filter osm/circle? ways))
 
-(def attrs (util/rules-by-id ID (util/read-input "resources/Data.txt")))
+(def attrs (utility/rules-by-id ID (utility/read-input "resources/Data.txt")))
 
 attrs
 
@@ -142,14 +154,15 @@ attrs
 (osm/convertStringCoords (osm/wayCoords nodes (last (take 6 ways))))
 
 (def ranks
-  (let[ranking_and_distance (fn[way]
+  (let[areas (filter osm/circle? ways)
+       ranking_and_distance (fn[way]
                               (let [coords (osm/convertStringCoords (osm/wayCoords nodes way))]
                                 (/ (rule_engine/getRanking attrs way) (inc (poly/point-to-polygon startPoint coords)))))]
-    (map vector (map #(ranking_and_distance %) ways) ways)))
+    (map vector (map #(ranking_and_distance %) areas) areas)))
 
 
 
-(osm/wayCoords nodes (second(first(sort-by first > ranks))))
+(osm/wayCoords nodes (second (first (sort-by first > ranks))))
 
 (kml_export_service/write-kml ID (osm/wayCoords nodes (second(first(sort-by first > ranks)))))
 

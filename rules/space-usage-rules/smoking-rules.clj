@@ -2,7 +2,6 @@
  { :attributeTag "smoking"
    :attributevalue "no"
    :locationTag "building"
-   :locationValue "true"
    :points 5}
 
 { :attributeTag "smoking"

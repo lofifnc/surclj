@@ -21,10 +21,13 @@
 
 (defn rule-on-way [attributes way]
   (fn [rule]
-  (let [tagName (:locationTag rule)]
-    (if (and (osm/checkWay way (fn[tag] (= tagName (:k (:attrs tag )))))
+  (let [tagName (:locationTag rule)
+        tagValue (:locationValue rule)]
+    (if (and (or
+              (and (not (clojure.string/blank? tagValue )) (osm/checkWay way (fn[tag] (and (= tagName (:k (:attrs tag ))) (= tagValue (:v (:attrs tag)))))))
+              (and (clojure.string/blank? tagValue)  (osm/checkWay way (fn[tag] (= tagName (:k (:attrs tag )))))))
              (not (clojure.string/blank? (get attributes (:attributeTag rule)))))
-     (:points rule)
+        (:points rule)
       0))))
 
 (defn getRanking [attributes way]

@@ -4,7 +4,7 @@
 (defn assoc-line[m kv]
   (let [k (first kv)
         v (rest kv)
-        split-rule (fn[raw-rule] {(first (str/split raw-rule #"=")) (str/replace (second (str/split raw-rule #"=")) "\"" "") })]
+        split-rule (fn[raw-rule] {(first (str/split raw-rule #"=")) (str/replace (second (str/split raw-rule #"=")) #"\"|\r" "") })]
   (if (contains? m k)
     (assoc m k {:coord [(read-string (first v)) (read-string (second v))]
                 :rules (conj (:rules (m k)) (split-rule (last v)))})

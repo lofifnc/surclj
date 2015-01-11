@@ -40,7 +40,7 @@
 (defn add-rules
   "add each space-usage-rule to an array"
   [files]
-  (map #(into [] %) files))
+  (flatten files))
 
 (defn add-poly-rules
   "add each polyl-rule to a map"
