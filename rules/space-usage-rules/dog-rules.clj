@@ -10,4 +10,5 @@
    :locationTag "building"
    :points 3}
 
+
  ]

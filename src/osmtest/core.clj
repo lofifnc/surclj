@@ -33,7 +33,6 @@
           ranks       (let[ranking_and_distance (fn[way]
                                 (/ (rule_engine/getRanking attrs way)
                                    (inc (poly/point-to-polygon [lat lon] (osm/convertStringCoords (osm/wayCoords nodes way))))))]
-                        (println (first startPoint) attrs (sort-by first > (map vector (map #(ranking_and_distance %) areas) areas) ))
                         (map vector (map #(ranking_and_distance %) areas) areas))
           ]
      (if (empty? areas)
@@ -48,14 +47,6 @@
 
 
 
-(def ranks
-  (let[areas (filter osm/circle? ways)
-       ranking_and_distance (fn[way]
-                              (let [coords (osm/convertStringCoords (osm/wayCoords nodes way))]
-                                (/ (rule_engine/getRanking attrs way) (inc (poly/point-to-polygon startPoint coords)))))]
-    (map vector (map #(ranking_and_distance %) areas) areas)))
-
-(osm/wayCoords nodes (second (first (sort-by first > ranks))))
 
 
 ; TODO map result of checkWay-functions to xml structure for kml resuklt file
@@ -68,7 +59,7 @@
 
 (def data_txt (utility/read-input "resources/Data.txt"))
 
-(def ID "0001")
+(def ID "0005")
 
 (def startPoint (:coord (get data_txt ID)))
 ;(doLogic startPoint)
@@ -152,6 +143,11 @@ attrs
 
 
 (osm/convertStringCoords (osm/wayCoords nodes (last (take 6 ways))))
+
+
+(def areas (filter osm/circle? ways))
+(sort-by first > (map vector (map #(rule_engine/getRanking attrs %) areas) areas))
+
 
 (def ranks
   (let[areas (filter osm/circle? ways)
