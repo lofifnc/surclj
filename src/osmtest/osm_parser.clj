@@ -65,6 +65,11 @@
   [node]
   ( vector (get (get node :attrs) :lon) (get ( get node :attrs) :lat )))
 
+(defn parseNodeToCoordDouble
+    "returns a the coords of a node as a double vector"
+  [node]
+  ( vector (java.lang.Double/parseDouble(get (get node :attrs) :lat)) (java.lang.Double/parseDouble(get ( get node :attrs) :lon ))))
+
 
 (defn wayTags
   "returns a sequence of k-v pairs as the tags of the given way"

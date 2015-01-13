@@ -4,10 +4,10 @@
            [osmtest.rest_handler :as rest_handler]
            [osmtest.kml_export_service :as kml_export_service]
            [osmtest.utility :as utility]
-           [osmtest.poly :as poly])
+           [osmtest.poly :as poly]
+           [osmtest.space_finder :as space]
+           [geo [geohash :as geohash] [jts :as jts] [spatial :as spatial] [poly :as pol]])
   (:gen-class :main true))
-
-
 
 
 
@@ -34,6 +34,7 @@
                                 (/ (rule_engine/getRanking attrs way)
                                    (inc (poly/point-to-polygon [lat lon] (osm/convertStringCoords (osm/wayCoords nodes way))))))]
                         (map vector (map #(ranking_and_distance %) areas) areas))
+          ;space      (space/getVisibleSpace (:coord startPoint) incDec ways nodes)
           ]
      (if (empty? areas)
        (recur startPoint (* 2 incDec))
@@ -59,11 +60,11 @@
 
 (def data_txt (utility/read-input "resources/Data.txt"))
 
-(def ID "0005")
+(def ID "0056")
 
 (def startPoint (:coord (get data_txt ID)))
 ;(doLogic startPoint)
-(def incDec 0.001)
+(def incDec 0.002)
 
 
 (rest_handler/request
@@ -90,6 +91,11 @@ xml
 ; ways of file
 (def ways (osm/childsByTag xml :way))
 (first ways)
+
+
+
+
+
 
 (map #(:ref (:attrs %)) (osm/childsByTag (first ways) :nd ))
 
