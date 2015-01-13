@@ -5,21 +5,36 @@
            [geo [geohash :as geohash] [jts :as jts] [spatial :as spatial] [poly :as pol]]
   )
 )
+;Methoden zur Berechnung der eines Polygons in eine freie Fläche
 
-(defn isVisibleNode [start node edges]
-  (not(some #(and (pol/edges-intersect? [start node] %1) (not(or (= node (first %1)) (= node (last %1))))) edges))                 
+(defn isVisibleNode 
+  "Ein Ray-casting Algorithmus zur Überprüfung, ob der Node direkt mit dem Startpunkt
+   verbunden werden kann, ohne einen Weg zu schneiden."
+  [start node edges]
+  (not (some #(and
+                (pol/edges-intersect? [start node] %1)
+                (not(or (= node (first %1)) (= node (last %1)))))
+         edges)
+  )                 
 )
 
-(defn edgesOfWay [way nodes]
-  (map #(list (vector (java.lang.Double/parseDouble(last(first %1))) (java.lang.Double/parseDouble(first(first %1))))
-           (vector (java.lang.Double/parseDouble(last(last %1))) (java.lang.Double/parseDouble(first(last %1))) ))
-       (partition 2 1(osm/wayCoords nodes way)))
+(defn edgesOfWay
+  "Liefert für einen Weg die Liste aller Kanten. Jede Kante ist eine Liste, die 2 Vektoren mit den Koordinaten
+   der beiden Eckpunkte enthält."
+  [way nodes]
+  (map #(list 
+          (vector (java.lang.Double/parseDouble(last(first %1))) (java.lang.Double/parseDouble(first(first %1))))
+          (vector (java.lang.Double/parseDouble(last(last  %1))) (java.lang.Double/parseDouble(first(last  %1))))
+        )
+       (partition 2 1 (osm/wayCoords nodes way)))
 )
 
-(defn nodeInside [node startPoint incDec]
-  (let [nodKoord (osm/parseNodeToCoordDouble node)
-        nodLat (first nodKoord)
-        nodLon (last nodKoord)
+(defn nodeInside 
+  "Prüft, ob ein Knoten in dem angedachten Abschnitt liegt."
+  [node startPoint incDec]
+  (let [nodeKoord (osm/parseNodeToCoordDouble node)
+        nodeLat (first nodeKoord)
+        nodeLon (last nodeKoord)
         minLat (-  (first startPoint) incDec)
         maxLat (+  (first startPoint) incDec)
         minLon (-  (last startPoint) incDec)
@@ -27,16 +42,23 @@
         
         area (list minLat minLon minLat maxLon maxLat maxLon maxLat minLon minLat minLon)
         ]
-   (pol/region-contains? nodLat nodLon area))
+   (pol/region-contains? nodeLat nodeLon area))
 )
 
-(defn  angle_of [ank1 ank2 hyp]
+(defn  angle_of 
+  "Berechnet den Winkel eines Dreicks mit 3 gegeben Seiten. Winkel gegenüber der zuletzt eingegeben
+   Seite (hyp)"
+  [ank1 ank2 hyp]
   (let [sqrt (fn [x] (* x x))]
   (* (Math/acos (/ (+ (sqrt ank1) (sqrt ank2)(- (sqrt hyp)))  (* 2 ank1 ank2)))
   (/ 360 (* 2 Math/PI))))
 )
 
-(defn clockAngle [startPoint node incDec]
+(defn clockAngle 
+  "Berechnet den Winkel eines Knotens gegenüber einem normalen Vektor auf dem Startpunkt.
+   Der normalen Vektor zeigt Richtung Norden. Winkel im Westen sind kleiner als 180 Grad, 
+   die im Osten größer als 180 Grad."
+  [startPoint node incDec]
   (let [
      highPoint [(+ incDec (first startPoint)) (last startPoint)] 
      ank1 (poly/distance_meters startPoint highPoint)
@@ -51,9 +73,11 @@
 )
 
 
-;Funktion liefert Fläche, wenn kein Polygon gefunden werden kann
-; ways not areas
-(defn getVisibleSpace [startPoint incDec ways nodes]
+(defn getVisibleSpace 
+  "Funktion liefert die leere Fläche im Umkreis des Startpunkt. Die Ecken der
+   Fläche sind die Knoten der angrenzenden Wege. (Format Liste von Vektoren)
+   Es werden alle Wege benötigt, auch die nicht geschlossenen."
+  [startPoint incDec ways nodes]
   (let [ edges (mapcat #(edgesOfWay %1 nodes) ways)
          filteredNodes (filter #(nodeInside %1 startPoint incDec) nodes)
          visNodes (map osm/parseNodeToCoordDouble (filter #(isVisibleNode startPoint (osm/parseNodeToCoordDouble %1) edges) filteredNodes))
