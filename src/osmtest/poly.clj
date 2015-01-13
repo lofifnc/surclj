@@ -2,14 +2,6 @@
   (:use [clojure.math.numeric-tower :only (sqrt expt)])
   (:require [geo [geohash :as geohash] [jts :as jts] [spatial :as spatial]]))
 
-(defn dot-product [& matrix]
-   "Dot product of given matrix"
-  {:pre [(apply == (map count matrix))]}
-  (apply + (apply map * matrix)))
-
-(defn magnitude [vektor]
-  "Magnitude of given vektor"
-	(sqrt (reduce + (map  #(expt % 2) vektor))))
 
 (defn distance_meters [a b]
   "computes the distance between to points in meters"
@@ -18,34 +10,6 @@
 (defn vecsub[v1 v2]
   "Subtracts two vectors"
   (map - v1 v2))
-
-(comment
-"Deprecated"
-(defn point-to-linesegment[x p1 p2]
-	"Distance point to a line-segment"
-  (if (or (= x p1) (= x p2)) 0
-	(let [r
-		(/ (dot-product (vecsub p2 p1) (vecsub x p1))
-			(magnitude (vecsub x p1)))]
-		(cond
-			(< r 0) (magnitude (vecsub x p1))
-			(> r 1) (magnitude (vecsub p2 x))
-			:else (sqrt (- (expt (magnitude (vecsub x p1)) 2)(* r (expt (magnitude (vecsub p2 p1)) 2))))))))
-)
-
-(comment
-"Deprecated"
-(defn point-to-linesegment[x p1 p2]
-	"Distance point to a line-segment"
-  (if (or (= x p1) (= x p2)) 0
-	(let [r
-		(/ (dot-product (vecsub p2 p1) (vecsub x p1))
-			(magnitude (vecsub x p1)))]
-		(cond
-			(< r 0) (distance_meters x p1)
-			(> r 1) (distance_meters p2 x)
-			:else (sqrt (- (expt (distance_meters x p1) 2)(* r (expt (distance_meters p2 p1) 2))))))))
-)
 
 
 
