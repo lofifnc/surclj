@@ -1,13 +1,13 @@
 [
 
  { :attributeTag "dog_waste"
-   :attributevalue "no"
+   :attributeValue "no"
    :locationTag "landuse"
    :locationValue "recreation_ground"
    :points 3 }
 
   { :attributeTag "littering"
-   :attributevalue "no"
+   :attributeValue "no"
    :locationTag "landuse"
    :locationValue "recreation_ground"
    :points 3 }

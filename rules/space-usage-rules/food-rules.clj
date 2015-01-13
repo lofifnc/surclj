@@ -1,6 +1,6 @@
 [
  { :attributeTag "food"
-   :attributevalue "no"
+   :attributeValue "no"
    :locationTag "building"
    :points 3 }
 

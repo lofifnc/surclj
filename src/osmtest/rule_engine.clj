@@ -26,7 +26,7 @@
     (if (and (or
               (and (not (clojure.string/blank? tagValue )) (osm/checkWay way (fn[tag] (and (= tagName (:k (:attrs tag ))) (= tagValue (:v (:attrs tag)))))))
               (and (clojure.string/blank? tagValue)  (osm/checkWay way (fn[tag] (= tagName (:k (:attrs tag )))))))
-             (not (clojure.string/blank? (get attributes (:attributeTag rule)))))
+             (= (:attributeValue rule) (get attributes (:attributeTag rule))))
         (:points rule)
       0))))
 
