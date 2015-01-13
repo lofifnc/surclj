@@ -35,6 +35,8 @@
                                    (inc (poly/point-to-polygon [lat lon] (osm/convertStringCoords (osm/wayCoords nodes way))))))]
                         (map vector (map #(ranking_and_distance %) areas) areas))
           ;space      (space/getVisibleSpace (:coord startPoint) incDec ways nodes)
+          ;space Koordinaten in KML Reihenfolge:
+          ;           (map #(vector (last %1) (first %1)) (space/getVisibleSpace (:coord startPoint) incDec ways nodes))
           ]
      (if (empty? areas)
        (recur startPoint (* 2 incDec))
@@ -78,7 +80,7 @@
 (def ways (osm/childsByTag xml :way))
 
 ; Nodes für ein Space-Polygon
-(space/getVisibleSpace startPoint incDec ways nodes)
+(map #(vector (last %1) (first %1)) (space/getVisibleSpace startPoint incDec ways nodes))
 
 
 

@@ -47,7 +47,7 @@
 
 (defn write-kml [filename coordinates]
   "Write kml file with name <filename> for coordinates <coordinates>"
-  (spit (str filename ".kml") (with-out-str (clojure.xml/emit (kml-tmpl filename (to-coordinates-str coordinates))))))
+  (spit (str filename ".computed.kml") (with-out-str (clojure.xml/emit (kml-tmpl filename (to-coordinates-str coordinates))))))
 
 
 (def coordinates-in
