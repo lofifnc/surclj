@@ -63,7 +63,7 @@
 (defn parseNodeToCoord
   "returns a the coords of a node as vector"
   [node]
-  ( vector (get (get node :attrs) :lon) (get ( get node :attrs) :lat )))
+  ( vector (get (get node :attrs) :lat) (get ( get node :attrs) :lon )))
 
 (defn parseNodeToCoordDouble
     "returns a the coords of a node as a double vector"

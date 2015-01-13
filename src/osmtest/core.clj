@@ -11,8 +11,10 @@
 
 
 
-(def rules (osmtest.utility/read-input "resources/Data.txt"))
+(def rules (osmtest.utility/read-input "E:/locations/Data.txt"))
 
+(comment
+  "Deprecated"
 (defn doLogic
   "takes coords of startpoint and add/subtract 0.001 to the latitude and longitude to get
   a bounding box arround it. by using this bb, a request get all ways and nodes in this
@@ -31,16 +33,69 @@
           nodesByWay  (osm/nodesByWayCurry nodes)
           attrs       (:rules (last startPoint))
           ranks       (let[ranking_and_distance (fn[way]
-                                (/ (rule_engine/getRanking attrs way)
-                                   (inc (poly/point-to-polygon [lat lon] (osm/convertStringCoords (osm/wayCoords nodes way))))))]
+                               (let [ totalRanking (/ (rule_engine/getRanking attrs way)
+                                   (inc (poly/point-to-polygon [lat lon] (osm/convertStringCoords (osm/wayCoords nodes way)))))]
+                                     (if (Double/isNaN totalRanking)
+                                       0.0
+                                       totalRanking)))]
                         (map vector (map #(ranking_and_distance %) areas) areas))
           ;space      (space/getVisibleSpace (:coord startPoint) incDec ways nodes)
           ;space Koordinaten in KML Reihenfolge:
-          ;           (map #(vector (last %1) (first %1)) (space/getVisibleSpace (:coord startPoint) incDec ways nodes))
+           minDistance  (min (map #(poly/point-to-polygon [lat lon] (osm/convertStringCoords (osm/wayCoords nodes %))) areas))
+           space        (map #(vector (last %1) (first %1)) (space/getVisibleSpace (:coord startPoint) incDec ways nodes))
           ]
      (if (empty? areas)
        (recur startPoint (* 2 incDec))
+       ;(println startPoint (map first ranks)))))
        (kml_export_service/write-kml (str "out/" (first startPoint))  (osm/wayCoords nodes  (second(first(sort-by first > ranks))))))))
+  ([startPoint]
+   (let [ incDec 0.002 ]
+      (doLogic startPoint incDec))))
+
+)
+
+
+
+
+
+(defn doLogic
+  "takes coords of startpoint and add/subtract 0.001 to the latitude and longitude to get
+  a bounding box arround it. by using this bb, a request get all ways and nodes in this
+  bb. this ways get filtert (see comment) and the coords of the most nearst way to the startPoint will be returned.
+  if there is no fitting way in this bb, this function will be called recursived with a bigger bb (by multiply the incDec by 2)."
+  ([startPoint incDec]
+   (let
+     [ lat (last (:coord (last startPoint)))
+          lon (first  (:coord (last startPoint)))
+          xml         (osm/parseXml (rest_handler/request
+                                         (-  lat incDec)
+                                         (-  lon incDec)
+                                         (+  lat incDec)
+                                         (+  lon incDec)))
+          nodes       (osm/childsByTag xml :node)
+          ways        (osm/childsByTag xml :way)
+          areas       (filter #(osm/circle? %) ways)
+          borderDistance 10.0
+          minDistance  (apply min (map #(poly/point-to-polygon [lat lon] (osm/convertStringCoords (osm/wayCoords nodes %))) areas))
+          switchCoords (fn[coords] (map #(vector (last %1) (first %1)) coords))]
+     (if (> minDistance borderDistance)
+       (let
+         [ attrs       (:rules (last startPoint))
+           ranks       (let[ranking_and_distance (fn[way]
+                                   (let [ totalRanking (/ (rule_engine/getRanking attrs way)
+                                       (inc (poly/point-to-polygon [lat lon] (osm/convertStringCoords (osm/wayCoords nodes way)))))]
+                                         (if (Double/isNaN totalRanking)
+                                           0.0
+                                           totalRanking)))]
+                            (map vector (map #(ranking_and_distance %) areas) areas))]
+         (if (empty? areas)
+           (recur startPoint (* 2 incDec))
+           ;(println startPoint (map first ranks)))))
+           (kml_export_service/write-kml (str "out/" (first startPoint))
+                                          (osm/wayCoords nodes  (second(first(sort-by first > ranks)))))))
+        (let
+           [space (switchCoords (space/getVisibleSpace (:coord (last startPoint)) incDec ways nodes))]
+           (kml_export_service/write-kml (str "out/" (first startPoint)) space)))))
   ([startPoint]
    (let [ incDec 0.002 ]
       (doLogic startPoint incDec))))
@@ -60,8 +115,8 @@
 ;;
 
 
-(def data_txt (utility/read-input "resources/Data.txt"))
-(def ID "0050")
+(def data_txt (utility/read-input "E:/locations/Data.txt"))
+(def ID "0009")
 (def startPoint (:coord (get data_txt ID)))
 (def incDec 0.002)
 
@@ -142,6 +197,7 @@ attrs
 (def areas (filter osm/circle? ways))
 (sort-by first > (map vector (map #(rule_engine/getRanking attrs %) areas) areas))
 
+ (sort-by first  (map #(vector (poly/point-to-polygon  startPoint (osm/convertStringCoords (osm/wayCoords nodes %))) %) areas))
 
 (def ranks
   (let[areas (filter osm/circle? ways)
@@ -150,12 +206,17 @@ attrs
                                 (/ (rule_engine/getRanking attrs way) (inc (poly/point-to-polygon startPoint coords)))))]
     (map vector (map #(ranking_and_distance %) areas) areas)))
 
-
+ (min (map #(poly/point-to-polygon [(last startPoint)(first startPoint)] (osm/convertStringCoords (osm/wayCoords nodes %))) areas))
 
 (osm/wayCoords nodes (second (first (sort-by first > ranks))))
 
-(kml_export_service/write-kml ID (osm/wayCoords nodes (second(first(sort-by first > ranks)))))
+(kml_export_service/write-kml ID (map #(vector (last %1) (first %1)) (osm/wayCoords nodes (second(first(sort-by first > ranks))))))
 
+(def   switchCoords (fn[coords] (map #(vector (last %1) (first %1)) coords)))
+
+(let
+           [space (switchCoords (space/getVisibleSpace startPoint incDec ways nodes))]
+           (kml_export_service/write-kml (str "out/" (first startPoint)) space))
 
 ;; main function
 ; (defn -main [& args]
