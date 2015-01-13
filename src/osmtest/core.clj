@@ -40,7 +40,7 @@
        (recur startPoint (* 2 incDec))
        (kml_export_service/write-kml (str "out/" (first startPoint))  (osm/wayCoords nodes  (second(first(sort-by first > ranks))))))))
   ([startPoint]
-   (let [ incDec 0.001 ]
+   (let [ incDec 0.002 ]
       (doLogic startPoint incDec))))
 
 
@@ -59,21 +59,9 @@
 
 
 (def data_txt (utility/read-input "resources/Data.txt"))
-
-(def ID "0056")
-
+(def ID "0050")
 (def startPoint (:coord (get data_txt ID)))
-;(doLogic startPoint)
 (def incDec 0.002)
-
-
-(rest_handler/request
-    (-  (last startPoint) incDec)
-    (-  (first startPoint) incDec)
-    (+  (last startPoint) incDec)
-    (+  (first startPoint) incDec))
-
-
 
 (def xml
   (osm/parseXml
@@ -83,16 +71,14 @@
     (+  (last startPoint) incDec)
     (+  (first startPoint) incDec))))
 
-xml
-
 ; nodes of file
 (def nodes (osm/childsByTag xml :node))
 
 ; ways of file
 (def ways (osm/childsByTag xml :way))
-(first ways)
 
-
+; Nodes für ein Space-Polygon
+(space/getVisibleSpace startPoint incDec ways nodes)
 
 
 
