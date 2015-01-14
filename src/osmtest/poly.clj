@@ -26,12 +26,6 @@
                (>= p2_angle 90.0) p2->x
                :else (* (Math/sin (* p1_angle (/ (* 2 Math/PI) 360))) p1->x))))))
 
-(defn point-to-polygon [x polygon]
-	"Distance point to polygon"
-  (if (point-inside? x polygon)
-    0
-	 (apply min (map  #(point-to-linesegment x (first %) (second %))(partition 2 1 polygon)))))
-
 (defn- crossing-number
   "Determine crossing number for given point and segment of a polygon.
    See http://geomalgorithms.com/a03-_inclusion.html"
@@ -47,3 +41,13 @@
   "Is point inside the given polygon?"
   [point polygon]
   (odd? (reduce + (map #(crossing-number point %)(partition 2 1 polygon)))))
+
+
+(defn point-to-polygon [x polygon]
+	"Distance point to polygon"
+  (if (point-inside? x polygon)
+    0
+	 (apply min (map  #(point-to-linesegment x (first %) (second %))(partition 2 1 polygon)))))
+
+
+
