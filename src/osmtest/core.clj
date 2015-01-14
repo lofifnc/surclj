@@ -28,6 +28,10 @@
           areas       (filter #(osm/circle? %) ways)
           borderDistance 10.0
           minDistance  (apply min (map #(poly/point-to-polygon (:coord (last startPoint)) (osm/convertStringCoords (osm/wayCoords nodes %))) areas))
+          umgebPol     (filter #(poly/point-inside? (:coord (last startPoint)) (osm/convertStringCoords (osm/wayCoords nodes %))) areas)
+          umgebPolNahe (first(sort-by #(< (first %)) (map #(list (poly/point-to-polygon (:coord (last startPoint)) (osm/convertStringCoords (osm/wayCoords nodes %)))
+                                                          (osm/convertStringCoords (osm/wayCoords nodes %)))
+                                                          umgebPol)))
           switchCoords (fn[coords] (map #(vector (last %1) (first %1)) coords))]
      (if (< minDistance borderDistance)
        (let
@@ -36,18 +40,21 @@
                                                     (/ (rule_engine/getRanking attrs way)
                                                            (inc (poly/point-to-polygon (:coord (last startPoint)) (osm/convertStringCoords (osm/wayCoords nodes way))))))]
                             (map vector (map #(ranking_and_distance %) areas) areas))]
+
          (if (empty? areas)
            (recur startPoint (* 2 incDec))
-           (kml_export_service/write-kml (str "out/" (first startPoint))
+           (kml_export_service/write-kml (str "out/P" (first startPoint))
                                           (switchCoords(osm/wayCoords nodes  (second(first(sort-by first > ranks))))))))
-        (let
-           [space (switchCoords (space/getVisibleSpace (:coord (last startPoint)) incDec ways nodes))]
-           (kml_export_service/write-kml (str "out/" (first startPoint)) space)))))
+        (if (= minDistance (first umgebPolNahe))
+          (kml_export_service/write-kml (str "out/I" (first startPoint)) (switchCoords(last umgebPolNahe)))
+          (let
+            [space (switchCoords (space/getVisibleSpace (:coord (last startPoint)) incDec ways nodes))]
+            (kml_export_service/write-kml (str "out/S" (first startPoint)) space))))))
   ([startPoint]
    (let [ incDec 0.002 ]
       (doLogic startPoint incDec))))
 
 (defn -main [& args]
-    (dorun (map println (osmtest.utility/read-input "./locations/Data.txt"))))
+    (dorun (map doLogic (osmtest.utility/read-input "./resources/Data.txt"))))
 
-(map doLogic(osmtest.utility/read-input "./locations/Data.txt"))
+
