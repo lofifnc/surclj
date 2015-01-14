@@ -29,8 +29,6 @@
           borderDistance 10.0
           minDistance  (apply min (map #(poly/point-to-polygon (:coord (last startPoint)) (osm/convertStringCoords (osm/wayCoords nodes %))) areas))
           switchCoords (fn[coords] (map #(vector (last %1) (first %1)) coords))]
-
-     (println (first startPoint) minDistance)
      (if (< minDistance borderDistance)
        (let
          [ attrs       (:rules (last startPoint))
