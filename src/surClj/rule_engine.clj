@@ -1,6 +1,6 @@
-(ns osmtest.rule_engine
-  (require [osmtest.osm_parser :as osm]
-           [osmtest.file_reader :as reader])
+(ns surClj.rule_engine
+  (require [surClj.osm_parser :as osm]
+           [surClj.file_reader :as reader])
   )
 
 (def polyRules (-> (reader/directory "./rules/poly-rules")

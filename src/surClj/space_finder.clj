@@ -1,7 +1,7 @@
-(ns osmtest.space_finder
-    (require [osmtest.rest_handler :as rest]
-           [osmtest.osm_parser :as osm]
-           [osmtest.poly :as poly]
+(ns surClj.space_finder
+    (require [surClj.rest_handler :as rest]
+           [surClj.osm_parser :as osm]
+           [surClj.poly :as poly]
            [geo [geohash :as geohash] [jts :as jts] [spatial :as spatial] [poly :as pol]]
   )
 )

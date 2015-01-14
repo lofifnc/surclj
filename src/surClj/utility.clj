@@ -1,4 +1,4 @@
-(ns osmtest.utility
+(ns surClj.utility
   (:require [clojure.string :as str]))
 
 (defn assoc-line[m kv]
