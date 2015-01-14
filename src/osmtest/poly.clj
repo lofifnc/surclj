@@ -1,5 +1,6 @@
 (ns osmtest.poly
   (:require [geo [geohash :as geohash] [jts :as jts] [spatial :as spatial]]))
+
  (defn distance_meters [a b]
   "computes the distance between to points in meters"
   (spatial/distance (apply spatial/spatial4j-point a)(apply spatial/spatial4j-point b)))
@@ -22,9 +23,12 @@
                   p1_angle (angle_of p1->x p1->p2 p2->x)
                   p2_angle (angle_of p1->p2 p2->x p1->x)]
              (cond
+               (some #(Double/isNaN %) [p1_angle p2_angle]) (apply min [p1->x p2->x])
                (>= p1_angle 90.0) p1->x
                (>= p2_angle 90.0) p2->x
                :else (* (Math/sin (* p1_angle (/ (* 2 Math/PI) 360))) p1->x))))))
+
+
 
 (defn- crossing-number
   "Determine crossing number for given point and segment of a polygon.
