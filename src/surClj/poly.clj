@@ -1,4 +1,4 @@
-(ns osmtest.poly
+(ns surClj.poly
   (:require [geo [geohash :as geohash] [jts :as jts] [spatial :as spatial]]))
 
  (defn distance_meters [a b]

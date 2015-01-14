@@ -1,11 +1,11 @@
-(ns osmtest.core
-  (require [osmtest.osm_parser :as osm]
-           [osmtest.rule_engine :as rule_engine]
-           [osmtest.rest_handler :as rest_handler]
-           [osmtest.kml_export_service :as kml_export_service]
-           [osmtest.utility :as utility]
-           [osmtest.poly :as poly]
-           [osmtest.space_finder :as space]
+(ns surClj.core
+  (require [surClj.osm_parser :as osm]
+           [surClj.rule_engine :as rule_engine]
+           [surClj.rest_handler :as rest_handler]
+           [surClj.kml_export_service :as kml_export_service]
+           [surClj.utility :as utility]
+           [surClj.poly :as poly]
+           [surClj.space_finder :as space]
            [geo [geohash :as geohash] [jts :as jts] [spatial :as spatial] [poly :as pol]])
   (:gen-class :main true))
 
@@ -48,6 +48,4 @@
       (doLogic startPoint incDec))))
 
 (defn -main [& args]
-    (dorun (map println (osmtest.utility/read-input "./locations/Data.txt"))))
-
-(map doLogic(osmtest.utility/read-input "./locations/Data.txt"))
+    (dorun (map println (surClj.utility/read-input "./locations/Data.txt"))))
