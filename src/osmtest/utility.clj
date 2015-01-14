@@ -20,6 +20,6 @@
 
 
 
-(read-input "resources/Data.txt")
+; (read-input "resources/Data.txt")
 
-(rules-by-id "0011" (read-input "resources/Data.txt"))
+; (rules-by-id "0011" (read-input "resources/Data.txt"))

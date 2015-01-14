@@ -1,17 +1,8 @@
 (ns osmtest.poly
-  (:use [clojure.math.numeric-tower :only (sqrt expt)])
   (:require [geo [geohash :as geohash] [jts :as jts] [spatial :as spatial]]))
-
-
-(defn distance_meters [a b]
+ (defn distance_meters [a b]
   "computes the distance between to points in meters"
   (spatial/distance (apply spatial/spatial4j-point a)(apply spatial/spatial4j-point b)))
-
-(defn vecsub[v1 v2]
-  "Subtracts two vectors"
-  (map - v1 v2))
-
-
 
 (defn point-to-linesegment[x p1 p2]
   (let [
@@ -35,8 +26,6 @@
                (>= p2_angle 90.0) p2->x
                :else (* (Math/sin (* p1_angle (/ (* 2 Math/PI) 360))) p1->x))))))
 
-
-
 (defn point-to-polygon [x polygon]
 	"Distance point to polygon"
 	 (apply min (map  #(point-to-linesegment x (first %) (second %))(partition 2 1 polygon))))
@@ -52,70 +41,7 @@
         1 0))
     0))
 
-
 (defn point-inside?
   "Is point inside the given polygon?"
   [point polygon]
   (odd? (reduce + (map #(crossing-number point %)(partition 2 1 polygon)))))
-
-(def parking
-  [
-    [5.39449440,50.92540920]
-    [5.39439760,50.92538520]
-    [5.39428670,50.92554690]
-    [5.39435600,50.92556580]
-    [5.39425200,50.92572160]
-    [5.39421150,50.92573420]
-    [5.39419710,50.92571940]
-    [5.39403610,50.92579710]
-    [5.39412040,50.92587160]
-    [5.39419200,50.92588620]
-    [5.39419780,50.92591840]
-    [5.39418890,50.92596410]
-    [5.39430740,50.92599180]
-    [5.39436250,50.92595470]
-    [5.39438830,50.92597360]
-    [5.39462890,50.92594930]
-    [5.39460260,50.92583600]
-    [5.39456620,50.92583520]
-    [5.39455300,50.92580050]
-    [5.39477580,50.92548380]
-    [5.39449440,50.92540920]
-  ])
-
-(def uptown
-  [
-   [-76.899979,40.277908]
-   [-76.905258,40.288906]
-   [-76.906013,40.290821]
-   [-76.906357,40.293571]
-   [-76.905853,40.295715]
-   [-76.902512,40.303967]
-   [-76.900864,40.308659]
-   [-76.898247,40.310394]
-   [-76.896751,40.310566]
-   [-76.893913,40.309837]
-   [-76.893478,40.301262]
-   [-76.890831,40.292564]
-   [-76.887260,40.281490]
-   [-76.899979,40.277908]
-  ])
-
-
-
-(point-inside? [-76.905258,40.288906] uptown) ; true
-
-(point-inside? [-73.905258,49.288906] uptown) ; false
-
-(distance_meters [51.477500 -0.461388] [33.942495 -118.408067])
-
-(point-to-polygon [-76.905258,40.288906] uptown) ; 0
-
-(point-to-linesegment [-76.905258,40.288906] [-76.906357 40.293571] [-76.905853 40.295715])
-
-(point-to-polygon [-73.905258,49.288906] uptown) ; 417531.32415376697
-
-(point-inside? [5.39412, 50.9259] parking)
-
-(point-to-polygon [5.39412, 50.9259] parking)
-
