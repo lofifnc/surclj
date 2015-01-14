@@ -23,8 +23,8 @@
    der beiden Eckpunkte enthält."
   [way nodes]
   (map #(list
-          (vector (java.lang.Double/parseDouble(last(first %1))) (java.lang.Double/parseDouble(first(first %1))))
-          (vector (java.lang.Double/parseDouble(last(last  %1))) (java.lang.Double/parseDouble(first(last  %1))))
+          (vector (java.lang.Double/parseDouble(first(first %1))) (java.lang.Double/parseDouble(last(first %1))))
+          (vector (java.lang.Double/parseDouble(first(last  %1))) (java.lang.Double/parseDouble(last(last  %1))))
         )
        (partition 2 1 (osm/wayCoords nodes way)))
 )

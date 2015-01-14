@@ -11,7 +11,7 @@
 
 
 
-(def rules (osmtest.utility/read-input "E:/locations/Data.txt"))
+(def rules (osmtest.utility/read-input "locations/Data.txt"))
 
 (comment
   "Deprecated"
@@ -76,7 +76,7 @@
           ways        (osm/childsByTag xml :way)
           areas       (filter #(osm/circle? %) ways)
           borderDistance 10.0
-          minDistance  (apply min (map #(poly/point-to-polygon [lat lon] (osm/convertStringCoords (osm/wayCoords nodes %))) areas))
+          minDistance  (apply min (map #(poly/point-to-polygon (:coord (last startPoint)) (osm/convertStringCoords (osm/wayCoords nodes %))) areas))
           switchCoords (fn[coords] (map #(vector (last %1) (first %1)) coords))]
      (if (> minDistance borderDistance)
        (let
@@ -92,7 +92,7 @@
            (recur startPoint (* 2 incDec))
            ;(println startPoint (map first ranks)))))
            (kml_export_service/write-kml (str "out/" (first startPoint))
-                                          (osm/wayCoords nodes  (second(first(sort-by first > ranks)))))))
+                                          (switchCoords(osm/wayCoords nodes  (second(first(sort-by first > ranks))))))))
         (let
            [space (switchCoords (space/getVisibleSpace (:coord (last startPoint)) incDec ways nodes))]
            (kml_export_service/write-kml (str "out/" (first startPoint)) space)))))
@@ -105,7 +105,7 @@
 
 
 
-
+(as 
 
 ; TODO map result of checkWay-functions to xml structure for kml resuklt file
 
@@ -115,7 +115,7 @@
 ;;
 
 
-(def data_txt (utility/read-input "E:/locations/Data.txt"))
+(def data_txt (utility/read-input "locations/Data.txt"))
 (def ID "0009")
 (def startPoint (:coord (get data_txt ID)))
 (def incDec 0.002)
@@ -133,6 +133,8 @@
 
 ; ways of file
 (def ways (osm/childsByTag xml :way))
+
+(mapcat #(space/edgesOfWay %1 nodes) ways)
 
 ; Nodes für ein Space-Polygon
 (map #(vector (last %1) (first %1)) (space/getVisibleSpace startPoint incDec ways nodes))
