@@ -33,11 +33,8 @@
        (let
          [ attrs       (:rules (last startPoint))
            ranks       (let[ranking_and_distance (fn[way]
-                                   (let [ totalRanking (/ (rule_engine/getRanking attrs way)
-                                                           (inc (poly/point-to-polygon (:coord (last startPoint)) (osm/convertStringCoords (osm/wayCoords nodes way)))))]
-                                         (if (Double/isNaN totalRanking)
-                                           0.0
-                                           totalRanking)))]
+                                                    (/ (rule_engine/getRanking attrs way)
+                                                           (inc (poly/point-to-polygon (:coord (last startPoint)) (osm/convertStringCoords (osm/wayCoords nodes way))))))]
                             (map vector (map #(ranking_and_distance %) areas) areas))]
          (if (empty? areas)
            (recur startPoint (* 2 incDec))
@@ -52,3 +49,5 @@
 
 (defn -main [& args]
     (dorun (map println (osmtest.utility/read-input "./locations/Data.txt"))))
+
+(map doLogic(osmtest.utility/read-input "./locations/Data.txt"))
