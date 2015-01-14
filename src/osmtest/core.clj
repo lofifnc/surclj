@@ -26,16 +26,19 @@
           nodes       (osm/childsByTag xml :node)
           ways        (osm/childsByTag xml :way)
           areas       (filter #(osm/circle? %) ways)
+          attrs       (:rules (last startPoint))
           borderDistance 10.0
           minDistance  (apply min (map #(poly/point-to-polygon (:coord (last startPoint)) (osm/convertStringCoords (osm/wayCoords nodes %))) areas))
           umgebPol     (filter #(poly/point-inside? (:coord (last startPoint)) (osm/convertStringCoords (osm/wayCoords nodes %))) areas)
           umgebPolNahe (first(sort-by #(< (first %)) (map #(list (poly/point-to-polygon (:coord (last startPoint)) (osm/convertStringCoords (osm/wayCoords nodes %)))
-                                                          (osm/convertStringCoords (osm/wayCoords nodes %)))
-                                                          umgebPol)))
+                                                               %)      umgebPol)))
+          ;;kann hier was passieren, wenn Liste leer ist?? auch nochmal auf Zeile 51 gucken
+          ;;kann nicht mehr denken, ist zu spät. Bisher ist halt kein fehler aufgetreten
+          
           switchCoords (fn[coords] (map #(vector (last %1) (first %1)) coords))]
      (if (< minDistance borderDistance)
        (let
-         [ attrs       (:rules (last startPoint))
+         [ 
            ranks       (let[ranking_and_distance (fn[way]
                                                     (/ (rule_engine/getRanking attrs way)
                                                            (inc (poly/point-to-polygon (:coord (last startPoint)) (osm/convertStringCoords (osm/wayCoords nodes way))))))]
@@ -45,8 +48,10 @@
            (recur startPoint (* 2 incDec))
            (kml_export_service/write-kml (str "out/P" (first startPoint))
                                           (switchCoords(osm/wayCoords nodes  (second(first(sort-by first > ranks))))))))
-        (if (= minDistance (first umgebPolNahe))
-          (kml_export_service/write-kml (str "out/I" (first startPoint)) (switchCoords(last umgebPolNahe)))
+        (if (or (= minDistance (first umgebPolNahe)) (> (rule_engine/getRanking attrs (last umgebPolNahe)) 1) ) ;or oder and
+          (let     
+            [space   (switchCoords (osm/convertStringCoords (osm/wayCoords nodes (last umgebPolNahe))))]
+            (kml_export_service/write-kml (str "out/I" (first startPoint)) space))
           (let
             [space (switchCoords (space/getVisibleSpace (:coord (last startPoint)) incDec ways nodes))]
             (kml_export_service/write-kml (str "out/S" (first startPoint)) space))))))
