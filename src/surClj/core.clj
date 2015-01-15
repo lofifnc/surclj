@@ -1,12 +1,11 @@
-(ns osmtest.core
-  (require [osmtest.osm_parser :as osm]
-           [osmtest.rule_engine :as rule_engine]
-           [osmtest.rest_handler :as rest_handler]
-           [osmtest.kml_export_service :as kml_export_service]
-           [osmtest.utility :as utility]
-           [osmtest.poly :as poly]
-           [osmtest.space_finder :as space]
-           [clojure.java.io :as io]
+(ns surClj.core
+  (require [surClj.osm_parser :as osm]
+           [surClj.rule_engine :as rule_engine]
+           [surClj.rest_handler :as rest_handler]
+           [surClj.kml_export_service :as kml_export_service]
+           [surClj.utility :as utility]
+           [surClj.poly :as poly]
+           [surClj.space_finder :as space]
            [geo [geohash :as geohash] [jts :as jts] [spatial :as spatial] [poly :as pol]])
   (:gen-class :main true))
 
@@ -27,28 +26,35 @@
           nodes       (osm/childsByTag xml :node)
           ways        (osm/childsByTag xml :way)
           areas       (filter #(osm/circle? %) ways)
+          attrs       (:rules (last startPoint))
           borderDistance 10.0
           minDistance  (apply min (map #(poly/point-to-polygon (:coord (last startPoint)) (osm/convertStringCoords (osm/wayCoords nodes %))) areas))
-          switchCoords (fn[coords] (map #(vector (last %1) (first %1)) coords))]
+          umgebPol     (filter #(poly/point-inside? (:coord (last startPoint)) (osm/convertStringCoords (osm/wayCoords nodes %))) areas)
+          umgebPolNahe (first(sort-by #(< (first %)) (map #(list (poly/point-to-polygon (:coord (last startPoint)) (osm/convertStringCoords (osm/wayCoords nodes %)))
+                                                               %)      umgebPol)))
+          ;;kann hier was passieren, wenn Liste leer ist?? auch nochmal auf Zeile 51 gucken
+          ;;kann nicht mehr denken, ist zu spät. Bisher ist halt kein fehler aufgetreten
 
-     (println (first startPoint) minDistance)
+          switchCoords (fn[coords] (map #(vector (last %1) (first %1)) coords))]
      (if (< minDistance borderDistance)
        (let
-         [ attrs       (:rules (last startPoint))
+         [
            ranks       (let[ranking_and_distance (fn[way]
-                                   (let [ totalRanking (/ (rule_engine/getRanking attrs way)
-                                                           (inc (poly/point-to-polygon (:coord (last startPoint)) (osm/convertStringCoords (osm/wayCoords nodes way)))))]
-                                         (if (Double/isNaN totalRanking)
-                                           0.0
-                                           totalRanking)))]
+                                                    (/ (rule_engine/getRanking attrs way)
+                                                           (inc (poly/point-to-polygon (:coord (last startPoint)) (osm/convertStringCoords (osm/wayCoords nodes way))))))]
                             (map vector (map #(ranking_and_distance %) areas) areas))]
+
          (if (empty? areas)
            (recur startPoint (* 2 incDec))
-           (kml_export_service/write-kml (str "out/" (first startPoint))
+           (kml_export_service/write-kml (str "out/P" (first startPoint))
                                           (switchCoords(osm/wayCoords nodes  (second(first(sort-by first > ranks))))))))
-        (let
-           [space (switchCoords (space/getVisibleSpace (:coord (last startPoint)) incDec ways nodes))]
-           (kml_export_service/write-kml (str "out/" (first startPoint)) space)))))
+        (if (or (= minDistance (first umgebPolNahe)) (> (rule_engine/getRanking attrs (last umgebPolNahe)) 1) ) ;or oder and
+          (let
+            [space   (switchCoords (osm/convertStringCoords (osm/wayCoords nodes (last umgebPolNahe))))]
+            (kml_export_service/write-kml (str "out/I" (first startPoint)) space))
+          (let
+            [space (switchCoords (space/getVisibleSpace (:coord (last startPoint)) incDec ways nodes))]
+            (kml_export_service/write-kml (str "out/S" (first startPoint)) space))))))
   ([startPoint]
    (let [ incDec 0.002 ]
       (doLogic startPoint incDec))))
@@ -77,7 +83,6 @@
   (if (.exists (io/file fpath)) true false))
 
 (defn run [fpath]
-  ; (dorun (map println (osmtest.utility/read-input fpath))))
   (dorun (map doLogic (osmtest.utility/read-input fpath))))
 
 (defn -main [& args]
@@ -86,7 +91,3 @@
       (cond
         (string? arg1) (if (check-file arg1) (run arg1) (println (str "File not found <" arg1 ">")))
         :else (println "To start the application run <java -jar -f path/to/Data.txt>")))))
-
-; "./locations/Data.txt"
-
-; (map doLogic rules)

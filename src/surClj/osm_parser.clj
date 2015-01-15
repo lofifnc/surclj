@@ -1,4 +1,4 @@
-(ns osmtest.osm_parser
+(ns surClj.osm_parser
    (require [clojure.xml :as xml]
             [clojure.zip :as zip]))
 

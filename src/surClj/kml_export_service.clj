@@ -1,4 +1,4 @@
-(ns osmtest.kml_export_service
+(ns surClj.kml_export_service
   (:require [clojure.xml :as xml]
             [clojure.string :as string])
   )

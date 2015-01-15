@@ -1,4 +1,4 @@
-(ns osmtest.file_reader
+(ns surClj.file_reader
   (:require [clojure.java.io :as io]))
 
 (defn directory
