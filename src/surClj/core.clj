@@ -60,25 +60,6 @@
    (let [ incDec 0.002 ]
       (doLogic startPoint incDec))))
 
-(defn run
-  "let's get polygons"
-  [f-path]
-  (dorun (map println (surClj.utility/read-input "f-path"))))
-
-(def cli-options
-  ;; An option with a required argument
-  [["-p" "--port PORT" "Port number"
-    :default 80
-    :parse-fn #(Integer/parseInt %)
-    :validate [#(< 0 % 0x10000) "Must be a number between 0 and 65536"]]
-   ;; A non-idempotent option
-   ["-v" nil "Verbosity level"
-    :id :verbosity
-    :default 0
-    :assoc-fn (fn [m k _] (update-in m [k] inc))]
-   ;; A boolean option defaulting to nil
-   ["-h" "--help"]])
-
 (defn check-file [fpath]
   (if (.exists (io/file fpath)) true false))
 
