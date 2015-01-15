@@ -6,6 +6,7 @@
            [osmtest.utility :as utility]
            [osmtest.poly :as poly]
            [osmtest.space_finder :as space]
+           [clojure.java.io :as io]
            [geo [geohash :as geohash] [jts :as jts] [spatial :as spatial] [poly :as pol]])
   (:gen-class :main true))
 
@@ -52,5 +53,40 @@
    (let [ incDec 0.002 ]
       (doLogic startPoint incDec))))
 
+(defn run
+  "let's get polygons"
+  [f-path]
+  (dorun (map println (osmtest.utility/read-input "f-path"))))
+
+(def cli-options
+  ;; An option with a required argument
+  [["-p" "--port PORT" "Port number"
+    :default 80
+    :parse-fn #(Integer/parseInt %)
+    :validate [#(< 0 % 0x10000) "Must be a number between 0 and 65536"]]
+   ;; A non-idempotent option
+   ["-v" nil "Verbosity level"
+    :id :verbosity
+    :default 0
+    :assoc-fn (fn [m k _] (update-in m [k] inc))]
+   ;; A boolean option defaulting to nil
+   ["-h" "--help"]])
+
+(defn check-file [fpath]
+    (println fpath)
+  (if (.exists (io/file fpath)) true false))
+
+(defn run [fpath]
+  ; (dorun (map println (osmtest.utility/read-input fpath))))
+  (dorun (map doLogic (osmtest.utility/read-input fpath))))
+
 (defn -main [& args]
-    (dorun (map println (osmtest.utility/read-input "./locations/Data.txt"))))
+  (dorun
+    (let [arg1 (first args)]
+      (cond
+        (string? arg1) (if (check-file arg1) (run arg1) (println (str "File not found <" arg1 ">")))
+        :else (println "To start the application run <java -jar -f path/to/Data.txt>")))))
+
+; "./locations/Data.txt"
+
+; (map doLogic rules)
