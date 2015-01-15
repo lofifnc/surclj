@@ -11,10 +11,10 @@
   (:gen-class :main true))
 
 (defn doLogic
-  "takes coords of startpoint and add/subtract 0.001 to the latitude and longitude to get
-  a bounding box arround it. by using this bb, a request get all ways and nodes in this
-  bb. this ways get filtert (see comment) and the coords of the most nearst way to the startPoint will be returned.
-  if there is no fitting way in this bb, this function will be called recursived with a bigger bb (by multiply the incDec by 2)."
+  "takes coords of startpoint and adds/subtracts 0.001 to the latitude and longitude to get
+  a bounding box arround it. by using this bb, a request gets all ways and nodes in this
+  bb. the ways get filtert (see comment) and the coords of the most nearest way to the startPoint will be returned.
+  if there is no fitting way in this bb, this function will be called recursive with a bigger bb (by multiply the incDec by 2)."
   ([startPoint incDec]
    (let
      [ lat (last (:coord (last startPoint)))

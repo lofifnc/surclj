@@ -1,10 +1,7 @@
-# osmtest
+# surClj
 
-A Clojure library designed to ... well, that part is up to you.
-
-## Usage
-
-FIXME
+A clojure application for matching space usage rules with their scope.
+The application can be build using leinigen.
 
 ## License
 
