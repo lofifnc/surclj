@@ -45,16 +45,16 @@
 
          (if (empty? areas)
            (recur startPoint (* 2 incDec))
-           (kml_export_service/write-kml (str "out/" (first startPoint))
+           (kml_export_service/write-kml (str (first startPoint))
                                           (switchCoords(osm/wayCoords nodes  (second(first(sort-by first > ranks))))))))
         (if (and (or (= minDistance (first umgebPolNahe)) (> (rule_engine/getRanking attrs (last umgebPolNahe)) 1) )
                  (< (poly/point-to-polygon-max (:coord (last startPoint)) (osm/convertStringCoords (osm/wayCoords nodes (last umgebPolNahe))) ) 500))
           (let
             [space   (switchCoords (osm/convertStringCoords (osm/wayCoords nodes (last umgebPolNahe))))]
-            (kml_export_service/write-kml (str "out/" (first startPoint)) space))
+            (kml_export_service/write-kml (str (first startPoint)) space))
           (let
             [space (switchCoords (space/getVisibleSpace (:coord (last startPoint)) incDec ways nodes))]
-            (kml_export_service/write-kml (str "out/" (first startPoint)) space))))))
+            (kml_export_service/write-kml (str (first startPoint)) space))))))
      ([startPoint]
       (let [ incDec 0.002 ]
          (doLogic startPoint incDec))))
