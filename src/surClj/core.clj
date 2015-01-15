@@ -6,6 +6,7 @@
            [surClj.utility :as utility]
            [surClj.poly :as poly]
            [surClj.space_finder :as space]
+           [clojure.java.io :as io]
            [geo [geohash :as geohash] [jts :as jts] [spatial :as spatial] [poly :as pol]])
   (:gen-class :main true))
 
@@ -62,7 +63,7 @@
 (defn run
   "let's get polygons"
   [f-path]
-  (dorun (map println (osmtest.utility/read-input "f-path"))))
+  (dorun (map println (surClj.utility/read-input "f-path"))))
 
 (def cli-options
   ;; An option with a required argument
@@ -79,11 +80,10 @@
    ["-h" "--help"]])
 
 (defn check-file [fpath]
-    (println fpath)
   (if (.exists (io/file fpath)) true false))
 
 (defn run [fpath]
-  (dorun (map doLogic (osmtest.utility/read-input fpath))))
+  (dorun (map doLogic (surClj.utility/read-input fpath))))
 
 (defn -main [& args]
   (dorun

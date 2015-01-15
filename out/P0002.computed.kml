@@ -18,10 +18,10 @@
 </Style>
 <Placemark>
 <name>
-out/0013
+out/P0002
 </name>
 <description>
-<img src='out/0013.jpg' width='400'/>
+<img src='out/P0002.jpg' width='400'/>
 </description>
 <styleUrl>
 #Poly1
@@ -39,11 +39,12 @@ clampToGround
 <outerBoundaryIs>
 <LinearRing>
 <coordinates>
-8.70539850,50.58042950
-8.70539810,50.58037670
-8.70570550,50.58037580
-8.70570580,50.58042870
-8.70539850,50.58042950
+8.70751930,50.57989300
+8.70756980,50.57972830
+8.70750970,50.57951630
+8.70724320,50.57957880
+8.70721680,50.57978620
+8.70751930,50.57989300
 </coordinates>
 </LinearRing>
 </outerBoundaryIs>
