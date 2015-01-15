@@ -33,8 +33,6 @@
           umgebPol     (filter #(poly/point-inside? (:coord (last startPoint)) (osm/convertStringCoords (osm/wayCoords nodes %))) areas)
           umgebPolNahe (first(sort-by first (map #(list (poly/point-to-polygon (:coord (last startPoint)) (osm/convertStringCoords (osm/wayCoords nodes %)))
                                                       %)      umgebPol)))
-          ;;kann hier was passieren, wenn Liste leer ist?? auch nochmal auf Zeile 51 gucken
-          ;;kann nicht mehr denken, ist zu spät. Bisher ist halt kein fehler aufgetreten
 
           switchCoords (fn[coords] (map #(vector (last %1) (first %1)) coords))]
      (if (< minDistance borderDistance)
@@ -47,16 +45,16 @@
 
          (if (empty? areas)
            (recur startPoint (* 2 incDec))
-           (kml_export_service/write-kml (str "out/P" (first startPoint))
+           (kml_export_service/write-kml (str "out/" (first startPoint))
                                           (switchCoords(osm/wayCoords nodes  (second(first(sort-by first > ranks))))))))
         (if (and (or (= minDistance (first umgebPolNahe)) (> (rule_engine/getRanking attrs (last umgebPolNahe)) 1) )
-                 (< (poly/point-to-polygon-max (:coord (last startPoint)) (osm/convertStringCoords (osm/wayCoords nodes (last umgebPolNahe))) ) 500)) 
+                 (< (poly/point-to-polygon-max (:coord (last startPoint)) (osm/convertStringCoords (osm/wayCoords nodes (last umgebPolNahe))) ) 500))
           (let
             [space   (switchCoords (osm/convertStringCoords (osm/wayCoords nodes (last umgebPolNahe))))]
-            (kml_export_service/write-kml (str "out/I" (first startPoint)) space))
+            (kml_export_service/write-kml (str "out/" (first startPoint)) space))
           (let
             [space (switchCoords (space/getVisibleSpace (:coord (last startPoint)) incDec ways nodes))]
-            (kml_export_service/write-kml (str "out/S" (first startPoint)) space))))))
+            (kml_export_service/write-kml (str "out/" (first startPoint)) space))))))
      ([startPoint]
       (let [ incDec 0.002 ]
          (doLogic startPoint incDec))))
@@ -72,4 +70,4 @@
     (let [arg1 (first args)]
       (cond
         (string? arg1) (if (check-file arg1) (run arg1) (println (str "File not found <" arg1 ">")))
-        :else (println "To start the application run <java -jar -f path/to/Data.txt>")))))
+        :else (println "To start the application run <java -jar path/to/Data.txt>")))))
