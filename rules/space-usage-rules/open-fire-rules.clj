@@ -15,5 +15,17 @@
   :locationTag "amenity"
   :locationValue "parking"
   :points 1}
-   
+  
+  { :attributeTag "open_fire"
+  :attributeValue "no"
+  :locationTag "landuse"
+  :points 1}
+  
+  
+{ :attributeTag "open_fire"
+  :attributeValue "no"
+  :locationTag "landuse"
+  :locationValue "commercial"
+  :points 4}
+  
 ]

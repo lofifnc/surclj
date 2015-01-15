@@ -51,5 +51,9 @@
 	"Distance point to polygon"
 	 (apply min (map  #(point-to-linesegment x (first %) (second %))(partition 2 1 polygon))))
 
+(defn point-to-polygon-max [x polygon]
+	"Max Distance point to polygon"
+	 (apply max (map  #(point-to-linesegment x (first %) (second %))(partition 2 1 polygon))))
+
 
 

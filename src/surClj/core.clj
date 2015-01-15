@@ -31,8 +31,8 @@
           borderDistance 10.0
           minDistance  (apply min (map #(poly/point-to-polygon (:coord (last startPoint)) (osm/convertStringCoords (osm/wayCoords nodes %))) areas))
           umgebPol     (filter #(poly/point-inside? (:coord (last startPoint)) (osm/convertStringCoords (osm/wayCoords nodes %))) areas)
-          umgebPolNahe (first(sort-by #(< (first %)) (map #(list (poly/point-to-polygon (:coord (last startPoint)) (osm/convertStringCoords (osm/wayCoords nodes %)))
-                                                               %)      umgebPol)))
+          umgebPolNahe (first(sort-by first (map #(list (poly/point-to-polygon (:coord (last startPoint)) (osm/convertStringCoords (osm/wayCoords nodes %)))
+                                                      %)      umgebPol)))
           ;;kann hier was passieren, wenn Liste leer ist?? auch nochmal auf Zeile 51 gucken
           ;;kann nicht mehr denken, ist zu spät. Bisher ist halt kein fehler aufgetreten
 
@@ -41,7 +41,7 @@
        (let
          [
            ranks       (let[ranking_and_distance (fn[way]
-                                                    (/ (rule_engine/getRanking attrs way)
+                                                    (/ (* (rule_engine/getRanking attrs way) 5)
                                                            (inc (poly/point-to-polygon (:coord (last startPoint)) (osm/convertStringCoords (osm/wayCoords nodes way))))))]
                             (map vector (map #(ranking_and_distance %) areas) areas))]
 
@@ -49,16 +49,17 @@
            (recur startPoint (* 2 incDec))
            (kml_export_service/write-kml (str "out/P" (first startPoint))
                                           (switchCoords(osm/wayCoords nodes  (second(first(sort-by first > ranks))))))))
-        (if (or (= minDistance (first umgebPolNahe)) (> (rule_engine/getRanking attrs (last umgebPolNahe)) 1) ) ;or oder and
+        (if (and (or (= minDistance (first umgebPolNahe)) (> (rule_engine/getRanking attrs (last umgebPolNahe)) 1) )
+                 (< (poly/point-to-polygon-max (:coord (last startPoint)) (osm/convertStringCoords (osm/wayCoords nodes (last umgebPolNahe))) ) 500)) 
           (let
             [space   (switchCoords (osm/convertStringCoords (osm/wayCoords nodes (last umgebPolNahe))))]
             (kml_export_service/write-kml (str "out/I" (first startPoint)) space))
           (let
             [space (switchCoords (space/getVisibleSpace (:coord (last startPoint)) incDec ways nodes))]
             (kml_export_service/write-kml (str "out/S" (first startPoint)) space))))))
-  ([startPoint]
-   (let [ incDec 0.002 ]
-      (doLogic startPoint incDec))))
+     ([startPoint]
+      (let [ incDec 0.002 ]
+         (doLogic startPoint incDec))))
 
 (defn check-file [fpath]
   (if (.exists (io/file fpath)) true false))
